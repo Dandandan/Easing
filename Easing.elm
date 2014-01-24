@@ -11,7 +11,9 @@ module Easing where
 @docs ease
 
 # Easing functions
-@docs linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeInOutCubic
+@docs linear, easeInQuad, easeOutQuad, easeInOutQuad,
+      easeInCubic, easeInOutCubic, easeInQuart,
+      easeOutQuart, easeInOutQuart
 
 -}
 
@@ -94,6 +96,27 @@ easeInOutCubic o c t =
     in
         if isFirstHalf o t then c / 2 * t' * t' * t' + o.from else c / 2 * (t2 * t2 * t2 + 2) + o.from
         
+easeInQuart : Easing
+easeInQuart o c t = 
+    let 
+        t' = t / o.duration
+    in
+        c * t' * t' * t' * t' + o.from
+        
+easeOutQuart : Easing
+easeOutQuart o c t = 
+    let
+        t'= t / o.duration - 1
+    in
+        -c * (t' * t' * t' * t' - 1) + o.from
+
+easeInOutQuart : Easing
+easeInOutQuart o c t = 
+    let
+        t' = t / (o.duration / 2)
+        t2 = t' - 2
+    in
+        if isFirstHalf o t then c / 2 * t' * t' * t' * t' + o.from else -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
         
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
