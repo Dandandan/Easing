@@ -50,12 +50,6 @@ type EasingState =
     { value   : Float
     , playing : Bool
     }
-    
-easeStart : EasingState
-easeStart = 
-    { value    = 0.0
-    , playing = True
-    }
 
 linear : Easing
 linear o c t = c * t / o.duration + o.from
@@ -108,7 +102,7 @@ isFirstHalf : EasingOptions -> Float -> Bool
 isFirstHalf o t = t < o.duration / 2
 
 {-| Apply an ease function
-    `tween { from = 0.0, to = 400.0, duration = 3000, easing = linear}`
+    `ease { from = 0.0, to = 400.0, duration = 3000, easing = linear}`
 Returns a signal with an `EasingState`.
 -} 
 ease : EaseOptions -> Signal EasingState
@@ -121,4 +115,4 @@ ease o =
                 p = isPlaying {o - easing} (t-b)
             in {playing = p, value = if p then n else o.to}
     in  
-        foldp e easeStart (s (timestamp (fps 60)))
+        foldp e {value = o.from, playing = True} (s (timestamp (fps 60)))
