@@ -11,18 +11,23 @@ module Easing where
 @docs ease
 
 # Easing functions
-@docs linear, 
+@docs Easing,
+      linear, 
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
-      easeInCirc, easeOutCirc, easeInOutCirc
+      easeInCirc, easeOutCirc, easeInOutCirc,
+      easeInBack, easeOutBack, easeInOutBack
 
 -}
 
 import Time (fps, timestamp, Time)
 
+{-| Type alias for Easing functions. 
+Parameters are the options of the easing, the change in value and the current time.
+-}
 type Easing = EasingOptions -> Time -> Time -> Float
 
 {-| Options for easing.
@@ -76,7 +81,10 @@ easeInOutQuad o c t =
         t' = t / (o.duration / 2)
         t2 = t' - 1
     in
-        if isFirstHalf o t then c / 2 * t' * t' + o.from else (-c / 2) * (t2 * (t2 - 2) - 1) + o.from
+        if isFirstHalf o t
+            then c / 2 * t' * t' + o.from
+        else
+            (-c / 2) * (t2 * (t2 - 2) - 1) + o.from
 
 easeInCubic : Easing
 easeInCubic o c t =
@@ -178,6 +186,35 @@ easeInOutCirc o c t =
             -c / 2 * (sqrt(1 - t' * t') - 1) + o.from
         else
             c / 2 * (sqrt(1 - t2 * t2) + 1) + o.from
+
+easeInBack : Easing
+easeInBack o c t =
+    let 
+        t' = t / o.duration
+        s  = 1.70158
+    in
+        c * t' * t' * ((s + 1) * t' - s) + o.from
+
+easeOutBack : Easing
+easeOutBack o c t =
+    let 
+        t' = t / o.duration - 1
+        s  = 1.70158
+    in
+        c * (t' * t' * ((s + 1) * t' + s) +1) + o.from       
+
+easeInOutBack : Easing
+easeInOutBack o c t =
+    let 
+        t' = t / (o.duration / 2)
+        s  = 1.70158 * 1.525
+        t2 = t' - 2
+    in
+        if isFirstHalf o t then
+            c / 2 * (t' * t' * ((s + 1) * t' - s)) + o.from
+        else
+            c / 2 * (t2 * t2 * ((s + 1) * t2 + s) + 2) + o.from
+
 
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
