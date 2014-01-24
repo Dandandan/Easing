@@ -2,7 +2,10 @@
 
 module Easing where
 
-{-| Library for working with easing.
+{-| Library for working with easing functions.
+
+Easing functions interpolate a value over time.
+They are mainly used to create animations (for user interfaces and games).
 
 # Options
 @docs EaseOptions, EasingState
@@ -19,7 +22,8 @@ module Easing where
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
-      easeInBack, easeOutBack, easeInOutBack
+      easeInBack, easeOutBack, easeInOutBack,
+      easeInPolonomial
 
 -}
 
@@ -62,18 +66,19 @@ type EasingState =
     , playing : Bool
     }
 
+{-| Linear easing, doesn't accelerate -}
 linear : Easing
-linear o c t = c * t / o.duration + o.from
+linear = easeInPolonomial 1.0
 
 easeInQuad : Easing
-easeInQuad o c t = c * (t / o.duration) ^ 2 + o.from
+easeInQuad = easeInPolonomial 2.0
 
 easeOutQuad : Easing
 easeOutQuad o c t = 
     let 
         t' = t / o.duration 
     in 
-        -c * t'*(t'-2) + o.from
+        -c * t' * (t' - 2) + o.from
         
 easeInOutQuad : Easing 
 easeInOutQuad o c t = 
@@ -87,11 +92,7 @@ easeInOutQuad o c t =
             (-c / 2) * (t2 * (t2 - 2) - 1) + o.from
 
 easeInCubic : Easing
-easeInCubic o c t =
-    let 
-        t' = t / o.duration 
-    in  
-        c * t' * t' * t' + o.from
+easeInCubic = easeInPolonomial 3.0
         
 easeOutCubic : Easing
 easeOutCubic o c t =
@@ -112,11 +113,7 @@ easeInOutCubic o c t =
             c / 2 * (t2 * t2 * t2 + 2) + o.from
         
 easeInQuart : Easing
-easeInQuart o c t = 
-    let 
-        t' = t / o.duration
-    in
-        c * t' * t' * t' * t' + o.from
+easeInQuart = easeInPolonomial 4.0
         
 easeOutQuart : Easing
 easeOutQuart o c t = 
@@ -167,7 +164,7 @@ easeInCirc o c t =
     let
         t' = t / o.duration
     in
-        -c * (sqrt(1 - t * t) - 1) + o.from
+        -c * (sqrt(1 - t' * t') - 1) + o.from
 
 easeOutCirc : Easing
 easeOutCirc o c t =
@@ -215,6 +212,9 @@ easeInOutBack o c t =
         else
             c / 2 * (t2 * t2 * ((s + 1) * t2 + s) + 2) + o.from
 
+{-| Ease in with a polonomial function -}
+easeInPolonomial : Float -> Easing
+easeInPolonomial i o c t = c * (t / o.duration) ^ i + o.from
 
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
@@ -222,12 +222,20 @@ isPlaying o t = t < o.duration
 isFirstHalf : EasingOptions -> Float -> Bool
 isFirstHalf o t = t < o.duration / 2
 
-{-| Apply an ease function
-    `ease { from = 0.0, to = 400.0, duration = 3000, easing = linear}`
+{-| Apply an ease function with 60 frames per second.
 Returns a signal with an `EasingState`.
+
+```haskell
+  ease { from = 0.0, to = 400.0, duration = 3000, easing = linear}
+```
+
 -} 
 ease : EaseOptions -> Signal EasingState
-ease o = 
+ease = easeWithFps 60
+
+{-| Apply an ease function. Parameters are frames per second and the options of the easing -}
+easeWithFps : Int -> EaseOptions -> Signal EasingState
+easeWithFps f o =
     let 
         b = lift fst <| timestamp (constant ())
         e ((t, _),b) _ = 
@@ -235,4 +243,4 @@ ease o =
                 p = isPlaying {o - easing} (t-b)
             in {playing = p, value = if p then n else o.to}
     in
-        foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps 60)) b)
+        foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)
