@@ -7,11 +7,13 @@ module Easing where
 Easing functions interpolate a value over time.
 They are mainly used to create animations (for user interfaces and games).
 
+You can find graphical examples of easing functions on http://easings.net/
+
 # Options
-@docs EaseOptions, EasingState
+@docs EaseOptions, EasingOptions, EasingState
 
 # Easing
-@docs ease
+@docs ease, easingState, easeWithFps
 
 # Easing functions
 @docs Easing,
@@ -47,14 +49,15 @@ type EaseOptions =
     , easing   : Easing
     }
 
+{-| Options for easing.
+Excludes an easing function, so you can use it to ease
+without the `ease` function
+-}
+
 type EasingOptions = 
     { from     : Float
     , to       : Float
     , duration : Time
-    }
-
-type PlayState =
-    { playing : Bool
     }
 
 {-| Represents the state of the easing
@@ -216,6 +219,19 @@ easeInOutBack o c t =
 easeInPolonomial : Float -> Easing
 easeInPolonomial i o c t = c * (t / o.duration) ^ i + o.from
 
+{-| Get the state and value of the easing at the current time
+    Assumes the time is normalized, it started at 0.
+    Parameters are the options of the easing, the current time, the begin time
+    and the easing function.
+-}
+easingState : EasingOptions -> Time -> Time -> Easing -> EasingState
+easingState o t b e = 
+    let 
+        p = isPlaying o (t - b)
+    in
+        {playing = p, value = if p then e o (o.to - o.from) (t - b) else o.to}
+
+{-| The easing is still playing at the current time -}
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
 
@@ -238,9 +254,7 @@ easeWithFps : Int -> EaseOptions -> Signal EasingState
 easeWithFps f o =
     let 
         b = lift fst <| timestamp (constant ())
-        e ((t, _),b) _ = 
-            let n = o.easing {o - easing} (o.to - o.from) (t-b)
-                p = isPlaying {o - easing} (t-b)
-            in {playing = p, value = if p then n else o.to}
+        e ((t, _),b) _ = easingState {o - easing} t b o.easing
     in
         foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)
+main = lift (asText . .value) <| ease { from = 0.0, to = 400.0, duration = 3000, easing = easeOutQuart}
