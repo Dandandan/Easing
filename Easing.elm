@@ -13,7 +13,7 @@ module Easing where
 # Easing functions
 @docs linear, easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeInOutCubic, easeInQuart,
-      easeOutQuart, easeInOutQuart
+      easeOutCubic, easeOutQuart, easeInOutQuart
 
 -}
 
