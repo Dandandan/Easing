@@ -177,5 +177,3 @@ ease o =
     in  
     
         foldp e {value = o.from, playing = True} (s (timestamp (fps 60)))
-
-main = lift (asText . .value) <| ease { from = 0.0, to = 400.0, duration = 3000, easing = easeInOutExpo}
