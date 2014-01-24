@@ -1,0 +1,12 @@
+{ "version": "0.1"
+, "summary": "Easing functions"
+, "description":
+      "Working with easing functions"
+, "license": "BSD3"
+, "repository": "https://github.com/Dandandan/Easing.git"
+, "exposed-modules":
+      [ "Easing"
+      ]
+, "elm-version": "0.11"
+, "dependencies": {}
+}
