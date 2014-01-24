@@ -14,14 +14,15 @@ module Easing where
 @docs linear, 
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
-      easeInQuart, easeOutQuart, easeInOutQuart
-      easeInSine, easeOutSine, easeInOutSine
+      easeInQuart, easeOutQuart, easeInOutQuart,
+      easeInSine, easeOutSine, easeInOutSine,
+      easeInExpo, easeOutExpo, easeInOutExpo   
 
 -}
 
-import Time (fps, timestamp)
+import Time (fps, timestamp, Time)
 
-type Easing = EasingOptions -> Float -> Float -> Float
+type Easing = EasingOptions -> Time -> Time -> Float
 
 {-| Options for easing.
 * <b>from</b> is value at the start
@@ -32,14 +33,14 @@ type Easing = EasingOptions -> Float -> Float -> Float
 type EaseOptions = 
     { from     : Float
     , to       : Float
-    , duration : Float
+    , duration : Time
     , easing   : Easing
     }
 
 type EasingOptions = 
     { from     : Float
     , to       : Float
-    , duration : Float
+    , duration : Time
     }
 
 type PlayState =
@@ -96,7 +97,10 @@ easeInOutCubic o c t =
         t' = t / (o.duration / 2)
         t2 = t' - 2
     in
-        if isFirstHalf o t then c / 2 * t' * t' * t' + o.from else c / 2 * (t2 * t2 * t2 + 2) + o.from
+        if isFirstHalf o t then
+            c / 2 * t' * t' * t' + o.from
+        else
+            c / 2 * (t2 * t2 * t2 + 2) + o.from
         
 easeInQuart : Easing
 easeInQuart o c t = 
@@ -118,7 +122,10 @@ easeInOutQuart o c t =
         t' = t / (o.duration / 2)
         t2 = t' - 2
     in
-        if isFirstHalf o t then c / 2 * t' * t' * t' * t' + o.from else -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
+        if isFirstHalf o t then
+            c / 2 * t' * t' * t' * t' + o.from
+        else
+            -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
         
 easeInSine : Easing
 easeInSine o c t = -c * cos(t / o.duration * (pi/2)) + c + o.from
@@ -128,7 +135,26 @@ easeOutSine o c t = c * sin(t / o.duration * (pi/2)) + o.from
 
 easeInOutSine : Easing
 easeInOutSine o c t = -c / 2 * (cos (pi * t / o.duration) - 1) + o.from
-        
+
+easeInExpo : Easing
+easeInExpo o c t = c * 2 ^ (10 * (t / o.duration - 1)) + o.from
+
+easeOutExpo : Easing
+easeOutExpo o c t = c * ( -( 2 ^ (-10 * t / o.duration )) + 1 ) + o.from
+
+easeInOutExpo : Easing
+easeInOutExpo o c t =
+    let
+        t' =  t / (o.duration / 2)
+        t2 =  t' - 1
+    in
+        if isFirstHalf o t then
+            c / 2 * (2 ^ (10 * (t' - 1))) + o.from
+        else
+            c / 2 * (-(2 ^ (-10 * t2)) + 2) + o.from
+            
+                       
+   
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
 
@@ -151,3 +177,5 @@ ease o =
     in  
     
         foldp e {value = o.from, playing = True} (s (timestamp (fps 60)))
+
+main = lift (asText . .value) <| ease { from = 0.0, to = 400.0, duration = 3000, easing = easeInOutExpo}
