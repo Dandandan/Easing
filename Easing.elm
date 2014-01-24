@@ -16,7 +16,8 @@ module Easing where
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
       easeInSine, easeOutSine, easeInOutSine,
-      easeInExpo, easeOutExpo, easeInOutExpo   
+      easeInExpo, easeOutExpo, easeInOutExpo,
+      easeInCirc, easeOutCirc, easeInOutCirc
 
 -}
 
@@ -152,9 +153,32 @@ easeInOutExpo o c t =
             c / 2 * (2 ^ (10 * (t' - 1))) + o.from
         else
             c / 2 * (-(2 ^ (-10 * t2)) + 2) + o.from
-            
-                       
-   
+                        
+easeInCirc : Easing
+easeInCirc o c t =
+    let
+        t' = t / o.duration
+    in
+        -c * (sqrt(1 - t * t) - 1) + o.from
+
+easeOutCirc : Easing
+easeOutCirc o c t =
+    let
+        t' = t / o.duration - 1
+    in
+        c * sqrt(1 - t' * t') + o.from
+
+easeInOutCirc : Easing
+easeInOutCirc o c t =
+    let
+        t' = t / (o.duration / 2)
+        t2 = t' - 2
+    in
+        if isFirstHalf o t then
+            -c / 2 * (sqrt(1 - t' * t') - 1) + o.from
+        else
+            c / 2 * (sqrt(1 - t2 * t2) + 1) + o.from
+
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
 
@@ -169,11 +193,9 @@ ease : EaseOptions -> Signal EasingState
 ease o = 
     let 
         b = lift fst <| timestamp (constant ())
-        s x = lift2 (,) x b
         e ((t, _),b) _ = 
             let n = o.easing {o - easing} (o.to - o.from) (t-b)
                 p = isPlaying {o - easing} (t-b)
             in {playing = p, value = if p then n else o.to}
-    in  
-    
-        foldp e {value = o.from, playing = True} (s (timestamp (fps 60)))
+    in
+        foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps 60)) b)
