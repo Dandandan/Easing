@@ -7,7 +7,7 @@ module Easing where
 Easing functions interpolate a value over time.
 They are mainly used to create animations (for user interfaces and games).
 
-You can find graphical examples of easing functions on http://easings.net/
+You can find graphical examples of easing functions at http://easings.net/
 
 # Options
 @docs EaseOptions, EasingOptions, EasingState
@@ -21,6 +21,7 @@ You can find graphical examples of easing functions on http://easings.net/
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
+      easeInQuint, easeOutQuint, easeInOutQuint,
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
@@ -135,7 +136,28 @@ easeInOutQuart o c t =
             c / 2 * t' * t' * t' * t' + o.from
         else
             -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
-        
+
+easeInQuint : Easing
+easeInQuint = easeInPolonomial 5.0
+
+easeOutQuint : Easing
+easeOutQuint o c t =
+    let
+        t' = t / o.duration - 1
+    in
+        c * (t' * t' * t' * t' * t' + 1) + o.from
+
+easeInOutQuint : Easing
+easeInOutQuint o c t = 
+    let
+        t' = t / (o.duration / 2)
+        t2 = t' - 2
+    in
+        if isFirstHalf o t then
+            c / 2 * t' * t' * t' * t' * t' + o.from
+        else
+            c / 2 * (t2 * t2 * t2 * t2 * t2 + 2) + o.from     
+      
 easeInSine : Easing
 easeInSine o c t = -c * cos(t / o.duration * (pi/2)) + c + o.from
 
@@ -257,4 +279,3 @@ easeWithFps f o =
         e ((t, _),b) _ = easingState {o - easing} t b o.easing
     in
         foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)
-main = lift (asText . .value) <| ease { from = 0.0, to = 400.0, duration = 3000, easing = easeOutQuart}
