@@ -11,9 +11,11 @@ module Easing where
 @docs ease
 
 # Easing functions
-@docs linear, easeInQuad, easeOutQuad, easeInOutQuad,
-      easeInCubic, easeInOutCubic, easeInQuart,
-      easeOutCubic, easeOutQuart, easeInOutQuart
+@docs linear, 
+      easeInQuad, easeOutQuad, easeInOutQuad,
+      easeInCubic, easeOutCubic, easeInOutCubic,
+      easeInQuart, easeOutQuart, easeInOutQuart
+      easeInSine, easeOutSine, easeInOutSine
 
 -}
 
@@ -118,6 +120,15 @@ easeInOutQuart o c t =
     in
         if isFirstHalf o t then c / 2 * t' * t' * t' * t' + o.from else -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
         
+easeInSine : Easing
+easeInSine o c t = -c * cos(t / o.duration * (pi/2)) + c + o.from
+
+easeOutSine : Easing
+easeOutSine o c t = c * sin(t / o.duration * (pi/2)) + o.from
+
+easeInOutSine : Easing
+easeInOutSine o c t = -c / 2 * (cos (pi * t / o.duration) - 1) + o.from
+        
 isPlaying : EasingOptions -> Float -> Bool
 isPlaying o t = t < o.duration
 
@@ -138,4 +149,5 @@ ease o =
                 p = isPlaying {o - easing} (t-b)
             in {playing = p, value = if p then n else o.to}
     in  
+    
         foldp e {value = o.from, playing = True} (s (timestamp (fps 60)))
