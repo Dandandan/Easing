@@ -33,7 +33,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 import Time (fps, timestamp, Time)
 
 {-| Type alias for Easing functions. 
-Parameters are the options of the easing, the change in value and the current time.
+Parameters are the options of the easing and the current time.
 -}
 type Easing = EasingOptions -> Time -> Float
 
@@ -217,24 +217,25 @@ easeInOutPolonomial : Int -> Easing
 easeInOutPolonomial i o t = 
     let
         t' = t * 2
-        t2 = t' / 2
+        h  = o.from + (o.to - o.from) / 2
+        o'  = { o | to <- h }
     in
         if isFirstHalf o t then
-            easeInPolonomial i o t'
+            easeInPolonomial i o' t'
         else
-            easeOutPolonomial i o t2
+            h + easeOutPolonomial i o' (t' - o.duration)
 
 {-| Get the state and value of the easing at the current time
     Assumes the time is normalized, it started at 0.
     Parameters are the options of the easing, the current time, the begin time
     and the easing function.
 -}
-easingState : EasingOptions -> Time -> Time -> Easing -> EasingState
-easingState o t b e = 
+easingState : EasingOptions -> Time  -> Easing -> EasingState
+easingState o t e = 
     let 
-        p = isPlaying o (t - b)
-    in
-        {playing = p, value = if p then e o (t - b) else o.to}
+        p = isPlaying o t
+    in 
+        { playing = p, value = if p then e o t else o.to }
 
 {-| The easing is still playing at the current time -}
 isPlaying : EasingOptions -> Float -> Bool
@@ -247,7 +248,7 @@ isFirstHalf o t = t < o.duration / 2
 Returns a signal with an `EasingState`.
 
 ```haskell
-  ease { from = 0.0, to = 400.0, duration = 3000, easing = linear}
+  ease { from = 0, to = 400, duration = 3000, easing = linear }
 ```
 
 -} 
@@ -259,6 +260,6 @@ easeWithFps : Int -> EaseOptions -> Signal EasingState
 easeWithFps f o =
     let 
         b = lift fst <| timestamp (constant ())
-        e ((t, _),b) _ = easingState {o - easing} t b o.easing
+        e ((t, _),b) _ = easingState {o - easing} (t - b) o.easing
     in
         foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)

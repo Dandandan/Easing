@@ -72,13 +72,13 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 100
                                   ,_1: 100},
                                   2000,
-                                  Easing.easeOutQuad)(A2(Graphics.Collage.filled,
+                                  Easing.easeInOutCubic)(A2(Graphics.Collage.filled,
                                   Color.blue,
                                   Graphics.Collage.circle(100)))
                                   ,A3(tween,
                                   {ctor: "_Tuple2",_0: 0,_1: 200},
                                   2000,
-                                  Easing.easeInBack)(A2(Graphics.Collage.filled,
+                                  Easing.easeInOutQuad)(A2(Graphics.Collage.filled,
                                   Color.red,
                                   A2(Graphics.Collage.rect,
                                   40,
@@ -88,7 +88,7 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 200
                                   ,_1: 200},
                                   1000,
-                                  Easing.linear)(Graphics.Collage.toForm(Text.plainText("aaa")))])));
+                                  Easing.easeInOutCubic)(Graphics.Collage.toForm(Text.plainText("aaa")))])));
    _elm.Main.values = {_op: _op
                       ,tweenWith: tweenWith
                       ,tween: tween
@@ -131,19 +131,14 @@ Elm.Easing.make = function (_elm) {
       return _U.cmp(t,
       o.duration) < 0;
    });
-   var easingState = F4(function (o,
+   var easingState = F3(function (o,
    t,
-   b,
    e) {
       return function () {
-         var p = A2(isPlaying,
-         o,
-         t - b);
+         var p = A2(isPlaying,o,t);
          return {_: {}
                 ,playing: p
-                ,value: p ? A2(e,
-                o,
-                t - b) : o.to};
+                ,value: p ? A2(e,o,t) : o.to};
       }();
    });
    var easeWithFps = F2(function (f,
@@ -157,14 +152,13 @@ Elm.Easing.make = function (_elm) {
                   {case "_Tuple2":
                      switch (_v0._0.ctor)
                        {case "_Tuple2":
-                          return A4(easingState,
+                          return A3(easingState,
                             _U.remove("easing",o),
-                            _v0._0._0,
-                            _v0._1,
+                            _v0._0._0 - _v0._1,
                             o.easing);}
                        break;}
                   _E.Case($moduleName,
-                  "on line 262, column 26 to 63");
+                  "on line 263, column 26 to 67");
                }();
             }();
          });
@@ -209,17 +203,19 @@ Elm.Easing.make = function (_elm) {
    o,
    t) {
       return function () {
+         var h = o.from + (o.to - o.from) / 2;
+         var o$ = _U.replace([["to",h]],
+         o);
          var t$ = t * 2;
-         var t2 = t$ / 2;
          return A2(isFirstHalf,
          o,
          t) ? A3(easeInPolonomial,
          i,
-         o,
-         t$) : A3(easeOutPolonomial,
+         o$,
+         t$) : h + A3(easeOutPolonomial,
          i,
-         o,
-         t2);
+         o$,
+         t$ - o.duration);
       }();
    });
    var easeInOutBack = F2(function (o,
