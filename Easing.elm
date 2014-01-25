@@ -7,7 +7,7 @@ module Easing where
 Easing functions interpolate a value over time.
 They are mainly used to create animations (for user interfaces and games).
 
-You can find graphical examples of easing functions at http://easings.net/
+You can find graphical examples of easing functions on [http://easings.net/]
 
 # Options
 @docs EaseOptions, EasingOptions, EasingState
@@ -21,7 +21,6 @@ You can find graphical examples of easing functions at http://easings.net/
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
-      easeInQuint, easeOutQuint, easeInOutQuint,
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
@@ -72,92 +71,44 @@ type EasingState =
 
 {-| Linear easing, doesn't accelerate -}
 linear : Easing
-linear = easeInPolonomial 1.0
+linear = easeInPolonomial 1
 
 easeInQuad : Easing
-easeInQuad = easeInPolonomial 2.0
+easeInQuad = easeInPolonomial 2
 
 easeOutQuad : Easing
-easeOutQuad o c t = 
-    let 
-        t' = t / o.duration 
-    in 
-        -c * t' * (t' - 2) + o.from
+easeOutQuad = easeOutPolonomial 2
         
 easeInOutQuad : Easing 
-easeInOutQuad o c t = 
-    let 
-        t' = t / (o.duration / 2)
-        t2 = t' - 1
-    in
-        if isFirstHalf o t
-            then c / 2 * t' * t' + o.from
-        else
-            (-c / 2) * (t2 * (t2 - 2) - 1) + o.from
+easeInOutQuad = easeInOutPolonomial 2
 
 easeInCubic : Easing
-easeInCubic = easeInPolonomial 3.0
+easeInCubic = easeInPolonomial 3
         
 easeOutCubic : Easing
-easeOutCubic o c t =
-    let 
-        t' = t / o.duration  - 1
-    in  
-        c * (t' * t' * t' + 1) + o.from
+easeOutCubic = easeOutPolonomial 3
         
 easeInOutCubic : Easing
-easeInOutCubic o c t =
-    let
-        t' = t / (o.duration / 2)
-        t2 = t' - 2
-    in
-        if isFirstHalf o t then
-            c / 2 * t' * t' * t' + o.from
-        else
-            c / 2 * (t2 * t2 * t2 + 2) + o.from
+easeInOutCubic = easeInOutPolonomial 3
         
 easeInQuart : Easing
-easeInQuart = easeInPolonomial 4.0
+easeInQuart = easeInPolonomial 4
         
 easeOutQuart : Easing
-easeOutQuart o c t = 
-    let
-        t'= t / o.duration - 1
-    in
-        -c * (t' * t' * t' * t' - 1) + o.from
+easeOutQuart = easeOutPolonomial 4
 
 easeInOutQuart : Easing
-easeInOutQuart o c t = 
-    let
-        t' = t / (o.duration / 2)
-        t2 = t' - 2
-    in
-        if isFirstHalf o t then
-            c / 2 * t' * t' * t' * t' + o.from
-        else
-            -c / 2 * (t2 * t2 * t2 * t2 - 2) + o.from
+easeInOutQuart = easeOutPolonomial 4
 
 easeInQuint : Easing
-easeInQuint = easeInPolonomial 5.0
+easeInQuint = easeInPolonomial 5
 
 easeOutQuint : Easing
-easeOutQuint o c t =
-    let
-        t' = t / o.duration - 1
-    in
-        c * (t' * t' * t' * t' * t' + 1) + o.from
+easeOutQuint = easeOutPolonomial 5
 
 easeInOutQuint : Easing
-easeInOutQuint o c t = 
-    let
-        t' = t / (o.duration / 2)
-        t2 = t' - 2
-    in
-        if isFirstHalf o t then
-            c / 2 * t' * t' * t' * t' * t' + o.from
-        else
-            c / 2 * (t2 * t2 * t2 * t2 * t2 + 2) + o.from     
-      
+easeInOutQuint = easeInOutPolonomial 5
+        
 easeInSine : Easing
 easeInSine o c t = -c * cos(t / o.duration * (pi/2)) + c + o.from
 
@@ -238,8 +189,31 @@ easeInOutBack o c t =
             c / 2 * (t2 * t2 * ((s + 1) * t2 + s) + 2) + o.from
 
 {-| Ease in with a polonomial function -}
-easeInPolonomial : Float -> Easing
-easeInPolonomial i o c t = c * (t / o.duration) ^ i + o.from
+easeInPolonomial : Int -> Easing
+easeInPolonomial i o c t = c * (t / o.duration) ^ (toFloat i) + o.from
+
+{-| Ease out with a polonomial function -}
+easeOutPolonomial : Int -> Easing
+easeOutPolonomial i o c t = 
+    let
+        t' = t / o.duration - 1
+    in
+        if i `mod` 2 == 0 then
+            -c * (t' * t' * t' * t' - 1) + o.from
+        else
+            c * (t' ^  (toFloat i) + 1) + o.from
+
+{-| Ease in and out with a polonomial function -}            
+easeInOutPolonomial : Int -> Easing
+easeInOutPolonomial i o c t = 
+    let
+        t' = t * 2
+        t2 = t' / 2
+    in
+        if isFirstHalf o t then
+            easeInPolonomial i o c t'
+        else
+            easeOutPolonomial i o c t2
 
 {-| Get the state and value of the easing at the current time
     Assumes the time is normalized, it started at 0.
@@ -279,3 +253,4 @@ easeWithFps f o =
         e ((t, _),b) _ = easingState {o - easing} t b o.easing
     in
         foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)
+main = lift (asText . .value) <| ease { from = 0.0, to = 400.0, duration = 3000, easing = easeInQuad}
