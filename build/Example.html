@@ -72,13 +72,13 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 100
                                   ,_1: 100},
                                   2000,
-                                  Easing.easeOutQuad)(A2(Graphics.Collage.filled,
+                                  Easing.easeInExpo)(A2(Graphics.Collage.filled,
                                   Color.blue,
                                   Graphics.Collage.circle(100)))
                                   ,A3(tween,
                                   {ctor: "_Tuple2",_0: 0,_1: 200},
                                   2000,
-                                  Easing.easeInBack)(A2(Graphics.Collage.filled,
+                                  Easing.easeOutBack)(A2(Graphics.Collage.filled,
                                   Color.red,
                                   A2(Graphics.Collage.rect,
                                   40,
@@ -88,7 +88,7 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 200
                                   ,_1: 200},
                                   1000,
-                                  Easing.linear)(Graphics.Collage.toForm(Text.plainText("aaa")))
+                                  Easing.easeInOutBack)(Graphics.Collage.toForm(Text.plainText("aaa")))
                                   ,A3(tween,
                                   {ctor: "_Tuple2",_0: 0,_1: 200},
                                   1000,
@@ -170,38 +170,30 @@ Elm.Easing.make = function (_elm) {
                             o.easing);}
                        break;}
                   _E.Case($moduleName,
-                  "on line 282, column 26 to 67");
+                  "on line 280, column 26 to 67");
                }();
             }();
          });
-         var b = Signal.lift(Basics.fst)(Time.timestamp(Signal.constant({ctor: "_Tuple0"})));
+         var b = A2(Signal._op["<~"],
+         Basics.fst,
+         Time.timestamp(Signal.constant({ctor: "_Tuple0"})));
          return A3(Signal.foldp,
          e,
          {_: {}
          ,playing: true
          ,value: o.from},
-         A3(Signal.lift2,
+         A2(Signal._op["~"],
+         A2(Signal._op["<~"],
          F2(function (v0,v1) {
             return {ctor: "_Tuple2"
                    ,_0: v0
                    ,_1: v1};
          }),
-         Time.timestamp(Time.fps(f)),
+         Time.timestamp(Time.fps(f))),
          b));
       }();
    });
    var ease = easeWithFps(60);
-   var easeOutPolonomial = F3(function (i,
-   o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         var t$ = t / o.duration - 1;
-         return _U.eq(A2(Basics.mod,i,2),
-         0) ? (0 - c) * (t$ * t$ * t$ * t$ - 1) + o.from : c * (Math.pow(t$,
-         Basics.toFloat(i)) + 1) + o.from;
-      }();
-   });
    var easeInPolonomial = F3(function (i,
    o,
    t) {
@@ -211,45 +203,86 @@ Elm.Easing.make = function (_elm) {
          Basics.toFloat(i)) + o.from;
       }();
    });
-   var easeInOutPolonomial = F3(function (i,
+   var invert = F3(function (e1,
    o,
    t) {
       return function () {
-         var h = o.from + (o.to - o.from) / 2;
-         var o$ = _U.replace([["to",h]],
-         o);
-         var t$ = t * 2;
-         return A2(isFirstHalf,
+         var c = o.to - o.from;
+         return c - A2(e1,
          o,
-         t) ? A3(easeInPolonomial,
-         i,
-         o$,
-         t$) : h + A3(easeOutPolonomial,
-         i,
-         o$,
-         t$ - o.duration);
+         o.duration - t);
       }();
    });
-   var easeInOutBack = F2(function (o,
-   t) {
+   var easeOutPolonomial = function (i) {
+      return invert(easeInPolonomial(i));
+   };
+   var easeInOut = F4(function (o,
+   t,
+   e1,
+   e2) {
       return function () {
          var c = o.to - o.from;
-         var s = 1.70158 * 1.525;
-         var t$ = t / (o.duration / 2);
-         var t2 = t$ - 2;
          return A2(isFirstHalf,
          o,
-         t) ? c / 2 * (t$ * t$ * ((s + 1) * t$ - s)) + o.from : c / 2 * (t2 * t2 * ((s + 1) * t2 + s) + 2) + o.from;
+         t) ? A2(e1,
+         o,
+         t * 2) / 2 + o.from : A2(e2,
+         o,
+         t * 2 - o.duration) / 2 + c / 2 + o.from;
       }();
    });
-   var easeOutBack = F2(function (o,
+   var easeInOutPolonomial = F3(function (i,
+   o,
+   t) {
+      return A4(easeInOut,
+      o,
+      t,
+      easeInPolonomial(i),
+      easeOutPolonomial(i));
+   });
+   var easeInElastic = F2(function (o,
    t) {
       return function () {
-         var c = o.to - o.from;
-         var s = 1.70158;
          var t$ = t / o.duration - 1;
-         return c * (t$ * t$ * ((s + 1) * t$ + s) + 1) + o.from;
+         var p = 0.3;
+         var s = 7.5e-2;
+         var c = o.to - o.from;
+         return (0 - Math.pow(2,
+         10 * t$) * Basics.sin((t$ - s) * (2 * Basics.pi) / p)) * c + o.from;
       }();
+   });
+   var easeOutElastic = invert(easeInElastic);
+   var easeInOutElastic = F2(function (o,
+   t) {
+      return A4(easeInOut,
+      o,
+      t,
+      easeInElastic,
+      easeOutElastic);
+   });
+   var easeOutBounce = F2(function (o,
+   t) {
+      return function () {
+         var t1 = t / o.duration;
+         var t2 = t1 - 1.5 / 2.75;
+         var t3 = t1 - 2.25 / 2.75;
+         var t4 = t1 - 2.65 / 2.75;
+         var a = 7.5625;
+         var c = o.to - o.from;
+         return _U.cmp(t1,
+         1 / 2.75) < 0 ? c * (a * t1 * t1) + o.from : _U.cmp(t1,
+         2 / 2.75) < 0 ? c * (a * t2 * t2 + 0.75) + o.from : _U.cmp(t1,
+         2.5 / 2.75) < 0 ? c * (a * t3 * t3 + 0.9375) + o.from : c * (a * t4 * t4 + 0.984375) + o.from;
+      }();
+   });
+   var easeInBounce = invert(easeOutBounce);
+   var easeInOutBounce = F2(function (o,
+   t) {
+      return A4(easeInOut,
+      o,
+      t,
+      easeInBounce,
+      easeOutBounce);
    });
    var easeInBack = F2(function (o,
    t) {
@@ -260,16 +293,14 @@ Elm.Easing.make = function (_elm) {
          return c * t$ * t$ * ((s + 1) * t$ - s) + o.from;
       }();
    });
-   var easeInOutCirc = F2(function (o,
+   var easeOutBack = invert(easeInBack);
+   var easeInOutBack = F2(function (o,
    t) {
-      return function () {
-         var c = o.to - o.from;
-         var t$ = t / (o.duration / 2);
-         var t2 = t$ - 2;
-         return A2(isFirstHalf,
-         o,
-         t) ? (0 - c) / 2 * (Basics.sqrt(1 - t$ * t$) - 1) + o.from : c / 2 * (Basics.sqrt(1 - t2 * t2) + 1) + o.from;
-      }();
+      return A4(easeInOut,
+      o,
+      t,
+      easeInBack,
+      easeOutBack);
    });
    var easeOutCirc = F2(function (o,
    t) {
@@ -279,34 +310,14 @@ Elm.Easing.make = function (_elm) {
          return c * Basics.sqrt(1 - t$ * t$) + o.from;
       }();
    });
-   var easeInCirc = F2(function (o,
+   var easeInCirc = invert(easeOutCirc);
+   var easeInOutCirc = F2(function (o,
    t) {
-      return function () {
-         var c = o.to - o.from;
-         var t$ = t / o.duration;
-         return (0 - c) * (Basics.sqrt(1 - t$ * t$) - 1) + o.from;
-      }();
-   });
-   var easeInOutExpo = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         var t$ = t / (o.duration / 2);
-         var t2 = t$ - 1;
-         return A2(isFirstHalf,
-         o,
-         t) ? c / 2 * Math.pow(2,
-         10 * (t$ - 1)) + o.from : c / 2 * (0 - Math.pow(2,
-         -10 * t2) + 2) + o.from;
-      }();
-   });
-   var easeOutExpo = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return c * (0 - Math.pow(2,
-         -10 * t / o.duration) + 1) + o.from;
-      }();
+      return A4(easeInOut,
+      o,
+      t,
+      easeInCirc,
+      easeOutCirc);
    });
    var easeInExpo = F2(function (o,
    t) {
@@ -316,19 +327,14 @@ Elm.Easing.make = function (_elm) {
          10 * (t / o.duration - 1)) + o.from;
       }();
    });
-   var easeInOutSine = F2(function (o,
+   var easeOutExpo = invert(easeInExpo);
+   var easeInOutExpo = F2(function (o,
    t) {
-      return function () {
-         var c = o.to - o.from;
-         return (0 - c) / 2 * (Basics.cos(Basics.pi * t / o.duration) - 1) + o.from;
-      }();
-   });
-   var easeOutSine = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return c * Basics.sin(t / o.duration * (Basics.pi / 2)) + o.from;
-      }();
+      return A4(easeInOut,
+      o,
+      t,
+      easeInExpo,
+      easeOutExpo);
    });
    var easeInSine = F2(function (o,
    t) {
@@ -336,6 +342,15 @@ Elm.Easing.make = function (_elm) {
          var c = o.to - o.from;
          return (0 - c) * Basics.cos(t / o.duration * (Basics.pi / 2)) + c + o.from;
       }();
+   });
+   var easeOutSine = invert(easeInSine);
+   var easeInOutSine = F2(function (o,
+   t) {
+      return A4(easeInOut,
+      o,
+      t,
+      easeInSine,
+      easeOutSine);
    });
    var easeInOutQuint = easeInOutPolonomial(5);
    var easeOutQuint = easeOutPolonomial(5);
@@ -376,7 +391,7 @@ Elm.Easing.make = function (_elm) {
               break;
             case "[]": return o.to;}
          _E.Case($moduleName,
-         "between lines 89 and 94");
+         "between lines 96 and 101");
       }();
    });
    var linear = easeInPolonomial(1);
@@ -431,6 +446,14 @@ Elm.Easing.make = function (_elm) {
                         ,easeInBack: easeInBack
                         ,easeOutBack: easeOutBack
                         ,easeInOutBack: easeInOutBack
+                        ,easeInBounce: easeInBounce
+                        ,easeOutBounce: easeOutBounce
+                        ,easeInOutBounce: easeInOutBounce
+                        ,easeInElastic: easeInElastic
+                        ,easeOutElastic: easeOutElastic
+                        ,easeInOutElastic: easeInOutElastic
+                        ,easeInOut: easeInOut
+                        ,invert: invert
                         ,easeInPolonomial: easeInPolonomial
                         ,easeOutPolonomial: easeOutPolonomial
                         ,easeInOutPolonomial: easeInOutPolonomial

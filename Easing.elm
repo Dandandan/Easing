@@ -17,7 +17,8 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 
 # Easing functions
 @docs Easing,
-      linear, 
+      linear,
+      keyFrames,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
@@ -26,6 +27,8 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
+      easeInBounce, easeOutBounce, easeInOutBounce,
+      easeInElastic, easeOutElastic, easeInOutElastic
       easeInPolonomial, easeOutPolonomial, easeInOutPolonomial
 
 -}
@@ -77,7 +80,11 @@ type EasingState =
 linear : Easing
 linear = easeInPolonomial 1
 
-{-| Create an easing from keyframes. Key frames are  
+{-| Create an easing from keyframes.
+
+Takes a list of pairs with the time as first element of the pair and the fraction as second element.
+
+This function doesn't interpolate the `inbetweens`.
 
 ```haskell
 keyFrames [(0, 0.0), (200,0.5), (300,0.7)]
@@ -133,56 +140,33 @@ easeInSine : Easing
 easeInSine o t = let c = o.to - o.from in -c * cos(t / o.duration * (pi/2)) + c + o.from
 
 easeOutSine : Easing
-easeOutSine o t = let c = o.to - o.from in  c * sin(t / o.duration * (pi/2)) + o.from
+easeOutSine = invert easeInSine
 
 easeInOutSine : Easing
-easeInOutSine o t = let c = o.to - o.from in -c / 2 * (cos (pi * t / o.duration) - 1) + o.from
+easeInOutSine o t = easeInOut o t easeInSine easeOutSine
 
 easeInExpo : Easing
 easeInExpo o t = let c = o.to - o.from in c * 2 ^ (10 * (t / o.duration - 1)) + o.from
 
 easeOutExpo : Easing
-easeOutExpo o t = let c = o.to - o.from in c * ( -( 2 ^ (-10 * t / o.duration )) + 1 ) + o.from
+easeOutExpo = invert easeInExpo
 
 easeInOutExpo : Easing
-easeInOutExpo o t =
-    let
-        t' =  t / (o.duration / 2)
-        t2 =  t' - 1
-        c = o.to - o.from
-    in
-        if isFirstHalf o t then
-            c / 2 * (2 ^ (10 * (t' - 1))) + o.from
-        else
-            c / 2 * (-(2 ^ (-10 * t2)) + 2) + o.from
+easeInOutExpo o t = easeInOut o t easeInExpo easeOutExpo
                         
 easeInCirc : Easing
-easeInCirc o t =
-    let
-        t' = t / o.duration
-        c = o.to - o.from
-    in
-        -c * (sqrt(1 - t' * t') - 1) + o.from
+easeInCirc = invert easeOutCirc
 
 easeOutCirc : Easing
-easeOutCirc o t =
+easeOutCirc o t= 
     let
         t' = t / o.duration - 1
         c = o.to - o.from
     in
-        c * sqrt(1 - t' * t') + o.from
+        c * (sqrt(1 - t' * t')) + o.from
 
 easeInOutCirc : Easing
-easeInOutCirc o t =
-    let
-        t' = t / (o.duration / 2)
-        t2 = t' - 2
-        c = o.to - o.from
-    in
-        if isFirstHalf o t then
-            -c / 2 * (sqrt(1 - t' * t') - 1) + o.from
-        else
-            c / 2 * (sqrt(1 - t2 * t2) + 1) + o.from
+easeInOutCirc o t = easeInOut o t easeInCirc easeOutCirc
 
 easeInBack : Easing
 easeInBack o t =
@@ -194,55 +178,69 @@ easeInBack o t =
         c * t' * t' * ((s + 1) * t' - s) + o.from
 
 easeOutBack : Easing
-easeOutBack o t =
-    let 
-        t' = t / o.duration - 1
-        s  = 1.70158
-        c = o.to - o.from
-    in
-        c * (t' * t' * ((s + 1) * t' + s) +1) + o.from       
+easeOutBack = invert easeInBack 
 
 easeInOutBack : Easing
-easeInOutBack o t =
-    let 
-        t' = t / (o.duration / 2)
-        s  = 1.70158 * 1.525
-        t2 = t' - 2
-        c = o.to - o.from
-    in
-        if isFirstHalf o t then
-            c / 2 * (t' * t' * ((s + 1) * t' - s)) + o.from
-        else
-            c / 2 * (t2 * t2 * ((s + 1) * t2 + s) + 2) + o.from
+easeInOutBack o t = easeInOut o t easeInBack easeOutBack
+            
+easeInBounce : Easing
+easeInBounce = invert easeOutBounce
 
+easeOutBounce : Easing
+easeOutBounce o t =
+    let
+        c = o.to - o.from
+        a  = 7.5625
+        t1 = t / o.duration
+        t2 = t1 - (1.5 / 2.75) 
+        t3 = t1 - (2.25 / 2.75) 
+        t4 = t1 - (2.65 / 2.75) 
+    in
+        if | t1 < 1 / 2.75     -> c * (a * t1 * t1) + o.from
+           | t1 < 2 / 2.75     -> c * (a * t2 * t2 + 0.75) + o.from
+           | t1 < 2.5 / 2.75   -> c * (a * t3 * t3 + 0.9375) + o.from
+           | otherwise         -> c * (a * t4 * t4 + 0.984375) + o.from
+
+easeInOutBounce : Easing
+easeInOutBounce o t = easeInOut o t easeInBounce easeOutBounce
+
+easeInElastic : Easing
+easeInElastic o t = 
+    let 
+        c  = o.to - o.from
+        s  = 0.075
+        p  = 0.3
+        t' = t / o.duration - 1
+    in
+        -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p)) * c + o.from
+
+easeOutElastic : Easing
+easeOutElastic = invert easeInElastic
+
+easeInOutElastic : Easing
+easeInOutElastic o t = easeInOut o t easeInElastic easeOutElastic
+
+easeInOut : EasingOptions -> Time -> Easing -> Easing -> Float
+easeInOut o t e1 e2 = let c = o.to - o.from in
+    if isFirstHalf o t then
+        e1 o (t * 2) / 2 + o.from
+    else
+        e2 o (t * 2 - o.duration) / 2 + c / 2 + o.from
+
+invert : Easing -> Easing
+invert e1 o t = let c = o.to - o.from in c - e1 o (o.duration - t)
+ 
 {-| Ease in with a polonomial function -}
 easeInPolonomial : Int -> Easing
 easeInPolonomial i o t = let c = o.to - o.from in c * (t / o.duration) ^ (toFloat i) + o.from
 
 {-| Ease out with a polonomial function -}
 easeOutPolonomial : Int -> Easing
-easeOutPolonomial i o t = 
-    let
-        t' = t / o.duration - 1
-        c = o.to - o.from
-    in
-        if i `mod` 2 == 0 then
-            -c * (t' * t' * t' * t' - 1) + o.from
-        else
-            c * (t' ^  (toFloat i) + 1) + o.from
+easeOutPolonomial i = invert (easeInPolonomial i)
 
 {-| Ease in and out with a polonomial function -}            
 easeInOutPolonomial : Int -> Easing
-easeInOutPolonomial i o t = 
-    let
-        t' = t * 2
-        h  = o.from + (o.to - o.from) / 2
-        o'  = { o | to <- h }
-    in
-        if isFirstHalf o t then
-            easeInPolonomial i o' t'
-        else
-            h + easeOutPolonomial i o' (t' - o.duration)
+easeInOutPolonomial i o t = easeInOut o t (easeInPolonomial i) (easeOutPolonomial i)
 
 {-| Get the state and value of the easing at the current time
     Assumes the time is normalized, it started at 0.
@@ -278,7 +276,7 @@ ease = easeWithFps 60
 easeWithFps : Int -> EaseOptions -> Signal EasingState
 easeWithFps f o =
     let 
-        b = lift fst <| timestamp (constant ())
+        b = fst <~ timestamp (constant ())
         e ((t, _),b) _ = easingState {o - easing} (t - b) o.easing
     in
-        foldp e {value = o.from, playing = True} (lift2 (,) (timestamp (fps f)) b)
+        foldp e {value = o.from, playing = True} ((,) <~ timestamp (fps f) ~ b)
