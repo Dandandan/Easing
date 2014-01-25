@@ -38,10 +38,12 @@ Parameters are the options of the easing and the current time.
 type Easing = EasingOptions -> Time -> Float
 
 {-| Options for easing.
+
 * <b>from</b> is value at the start
 * <b>to</b> is the value at the end
 * <b>duration</b> is the time the easing takes
 * <b>easing</b> is the easing function
+
 -}
 type EaseOptions = 
     { from     : Float
@@ -62,6 +64,7 @@ type EasingOptions =
     }
 
 {-| Represents the state of the easing
+
 * <b>value</b> is the value at the current time
 * <b>playing</b> whether the easing function is in progress or not
 -}
@@ -73,6 +76,22 @@ type EasingState =
 {-| Linear easing, doesn't accelerate -}
 linear : Easing
 linear = easeInPolonomial 1
+
+{-| Create an easing from keyframes. Key frames are  
+
+```haskell
+keyFrames [(0, 0.0), (200,0.5), (300,0.7)]
+```
+
+-}
+keyFrames : [(Float, Float)] -> Easing
+keyFrames fs o t = 
+    case fs of
+      [] -> o.to
+      ((i,f)::[])  -> (o.to - o.from) * f + o.from
+      ((i,f)::(i', f')::xs)  -> 
+            if | i' <= t    -> keyFrames ((i', f')::xs) o t
+               | otherwise  -> (o.to - o.from) * f + o.from
 
 easeInQuad : Easing
 easeInQuad = easeInPolonomial 2
