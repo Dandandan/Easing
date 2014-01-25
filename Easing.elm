@@ -13,7 +13,7 @@ You can find graphical examples of easing functions on [http://easings.net/]
 @docs EaseOptions, EasingOptions, EasingState
 
 # Easing
-@docs ease, easingState, easeWithFps
+@docs ease, easingState, easeWithFps, isPlaying
 
 # Easing functions
 @docs Easing,
@@ -25,7 +25,7 @@ You can find graphical examples of easing functions on [http://easings.net/]
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
-      easeInPolonomial
+      easeInPolonomial, easeOutPolonomial, easeInOutPolonomial
 
 -}
 
