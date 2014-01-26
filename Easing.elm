@@ -19,6 +19,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 @docs Easing,
       linear,
       keyFrames,
+      easeFrom, easeTo,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
@@ -28,7 +29,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
       easeInBounce, easeOutBounce, easeInOutBounce,
-      easeInElastic, easeOutElastic, easeInOutElastic
+      easeInElastic, easeOutElastic, easeInOutElastic,
       easeInPolonomial, easeOutPolonomial, easeInOutPolonomial
 
 -}
@@ -82,23 +83,46 @@ linear = easeInPolonomial 1
 
 {-| Create an easing from keyframes.
 
-Takes a list of pairs with the time as first element of the pair and the fraction as second element.
+Takes as first argument list of pairs with the `Time` as first element of the pair and the fraction as second element.
 
-This function doesn't interpolate the `inbetweens`.
+The second argument is an easing function.
 
 ```haskell
-keyFrames [(0, 0.0), (200,0.5), (300,0.7)]
+{- With linear interpolation -}
+keyFrames linear [(0, 0.0), (200,0.5), (300,0.7)]
+
+{- Without linear interpolation (stop-motion) -}
+keyFrames easeFrom [(0, 0.0), (200,0.5), (300,0.7)]
 ```
 
 -}
-keyFrames : [(Float, Float)] -> Easing
-keyFrames fs o t = 
-    case fs of
-      [] -> o.to
-      ((i,f)::[])  -> (o.to - o.from) * f + o.from
-      ((i,f)::(i', f')::xs)  -> 
-            if | i' <= t    -> keyFrames ((i', f')::xs) o t
-               | otherwise  -> (o.to - o.from) * f + o.from
+keyFrames : Easing -> [(Time, Float)]  -> Easing
+keyFrames easing fs o t = 
+    let
+        c = o.to - o.from
+    in
+        case fs of
+          [] -> o.to
+          ((i,f)::[]) -> easing { from     = o.from + c * f
+                                , to       = o.to
+                                , duration = o.duration - i
+                                } (t - i)
+          ((i,f)::(i', f')::xs) -> 
+                if | i' <= t    -> keyFrames easing ((i', f')::xs) o t
+                   | otherwise  -> easing { from     = o.from + c * f
+                                          , to       = o.from + c * f'
+                                          , duration = i' - i
+                                          } (t - i)
+
+{-|Saw-like motion -}
+easeSaw : Easing
+easeSaw o = 
+    let 
+        k = keyFrames linear <| map (\(x,y) -> (x * o.duration, y)) 
+                                [(0,0.0), (0.2, 0.4), (0.4, 0.3), (0.6, 0.7), (0.8, 0.6)] 
+    in
+        k o
+                     
 
 easeInQuad : Easing
 easeInQuad = easeInPolonomial 2
@@ -228,7 +252,15 @@ easeInOut o t e1 e2 = let c = o.to - o.from in
         e2 o (t * 2 - o.duration) / 2 + c / 2 + o.from
 
 invert : Easing -> Easing
-invert e1 o t = let c = o.to - o.from in c - e1 o (o.duration - t)
+invert e o t = let c = o.to - o.from in c - e o (o.duration - t)
+
+{-| Doesn't ease, but stays at from untill the end -}
+easeFrom : Easing
+easeFrom o _ = o.from
+
+{-| Is at the to value immediately -}
+easeTo : Easing
+easeTo o _ = o.to
  
 {-| Ease in with a polonomial function -}
 easeInPolonomial : Int -> Easing

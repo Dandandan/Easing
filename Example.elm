@@ -18,8 +18,8 @@ tween (x, y) d e f =
 
 
 main = lift (collage 500 500) <| combine 
-            [ tween (100, 100) 2000 easeInExpo <| filled blue (circle 100)
-            , tween (0, 200) 2000 easeOutBack <| filled red (rect 40 70)
-            , tween (200, 200) 1000 easeInOutBack <| toForm <| plainText "aaa"
-            , tween (0, 200) 1000 (keyFrames [(0, 0.0), (200,0.5), (300,0.7)]) <| toForm <| plainText "aaa"
+            [ tween (100, 100) 2000 easeInOutElastic <| filled blue (circle 100)
+            , tween (0, 200) 2000 easeInOutElastic <| filled red (rect 40 70)
+            , tween (200, 200) 1000 easeSaw <| toForm <| plainText "aaa"
+            , tween (0, 200) 5000 (keyFrames linear [(0, 0.0), (500,0.3), (1500,0.6),(3000,0.8)]) <| filled orange (circle 10)
             ]

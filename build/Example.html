@@ -72,13 +72,13 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 100
                                   ,_1: 100},
                                   2000,
-                                  Easing.easeInExpo)(A2(Graphics.Collage.filled,
+                                  Easing.easeInOutElastic)(A2(Graphics.Collage.filled,
                                   Color.blue,
                                   Graphics.Collage.circle(100)))
                                   ,A3(tween,
                                   {ctor: "_Tuple2",_0: 0,_1: 200},
                                   2000,
-                                  Easing.easeOutBack)(A2(Graphics.Collage.filled,
+                                  Easing.easeInOutElastic)(A2(Graphics.Collage.filled,
                                   Color.red,
                                   A2(Graphics.Collage.rect,
                                   40,
@@ -88,19 +88,26 @@ Elm.Main.make = function (_elm) {
                                   ,_0: 200
                                   ,_1: 200},
                                   1000,
-                                  Easing.easeInOutBack)(Graphics.Collage.toForm(Text.plainText("aaa")))
+                                  Easing.easeSaw)(Graphics.Collage.toForm(Text.plainText("aaa")))
                                   ,A3(tween,
                                   {ctor: "_Tuple2",_0: 0,_1: 200},
-                                  1000,
-                                  Easing.keyFrames(_J.toList([{ctor: "_Tuple2"
-                                                              ,_0: 0
-                                                              ,_1: 0.0}
-                                                             ,{ctor: "_Tuple2"
-                                                              ,_0: 200
-                                                              ,_1: 0.5}
-                                                             ,{ctor: "_Tuple2"
-                                                              ,_0: 300
-                                                              ,_1: 0.7}])))(Graphics.Collage.toForm(Text.plainText("aaa")))])));
+                                  5000,
+                                  A2(Easing.keyFrames,
+                                  Easing.linear,
+                                  _J.toList([{ctor: "_Tuple2"
+                                             ,_0: 0
+                                             ,_1: 0.0}
+                                            ,{ctor: "_Tuple2"
+                                             ,_0: 500
+                                             ,_1: 0.3}
+                                            ,{ctor: "_Tuple2"
+                                             ,_0: 1500
+                                             ,_1: 0.6}
+                                            ,{ctor: "_Tuple2"
+                                             ,_0: 3000
+                                             ,_1: 0.8}])))(A2(Graphics.Collage.filled,
+                                  Color.orange,
+                                  Graphics.Collage.circle(10)))])));
    _elm.Main.values = {_op: _op
                       ,tweenWith: tweenWith
                       ,tween: tween
@@ -170,7 +177,7 @@ Elm.Easing.make = function (_elm) {
                             o.easing);}
                        break;}
                   _E.Case($moduleName,
-                  "on line 280, column 26 to 67");
+                  "on line 312, column 26 to 67");
                }();
             }();
          });
@@ -203,12 +210,24 @@ Elm.Easing.make = function (_elm) {
          Basics.toFloat(i)) + o.from;
       }();
    });
-   var invert = F3(function (e1,
+   var easeTo = F2(function (o,
+   _v8) {
+      return function () {
+         return o.to;
+      }();
+   });
+   var easeFrom = F2(function (o,
+   _v10) {
+      return function () {
+         return o.from;
+      }();
+   });
+   var invert = F3(function (e,
    o,
    t) {
       return function () {
          var c = o.to - o.from;
-         return c - A2(e1,
+         return c - A2(e,
          o,
          o.duration - t);
       }();
@@ -364,37 +383,83 @@ Elm.Easing.make = function (_elm) {
    var easeInOutQuad = easeInOutPolonomial(2);
    var easeOutQuad = easeOutPolonomial(2);
    var easeInQuad = easeInPolonomial(2);
-   var keyFrames = F3(function (fs,
+   var keyFrames = F4(function (easing,
+   fs,
    o,
    t) {
       return function () {
-         switch (fs.ctor)
-         {case "::": switch (fs._0.ctor)
-              {case "_Tuple2":
-                 switch (fs._1.ctor)
-                   {case "::":
-                      switch (fs._1._0.ctor)
-                        {case "_Tuple2":
-                           return _U.cmp(fs._1._0._0,
-                             t) < 1 ? A3(keyFrames,
-                             {ctor: "::"
-                             ,_0: {ctor: "_Tuple2"
-                                  ,_0: fs._1._0._0
-                                  ,_1: fs._1._0._1}
-                             ,_1: fs._1._1},
-                             o,
-                             t) : (o.to - o.from) * fs._0._1 + o.from;}
-                        break;
-                      case "[]":
-                      return (o.to - o.from) * fs._0._1 + o.from;}
-                   break;}
-              break;
-            case "[]": return o.to;}
-         _E.Case($moduleName,
-         "between lines 96 and 101");
+         var c = o.to - o.from;
+         return function () {
+            switch (fs.ctor)
+            {case "::": switch (fs._0.ctor)
+                 {case "_Tuple2":
+                    switch (fs._1.ctor)
+                      {case "::":
+                         switch (fs._1._0.ctor)
+                           {case "_Tuple2":
+                              return _U.cmp(fs._1._0._0,
+                                t) < 1 ? A4(keyFrames,
+                                easing,
+                                {ctor: "::"
+                                ,_0: {ctor: "_Tuple2"
+                                     ,_0: fs._1._0._0
+                                     ,_1: fs._1._0._1}
+                                ,_1: fs._1._1},
+                                o,
+                                t) : A2(easing,
+                                {_: {}
+                                ,duration: fs._1._0._0 - fs._0._0
+                                ,from: o.from + c * fs._0._1
+                                ,to: o.from + c * fs._1._0._1},
+                                t - fs._0._0);}
+                           break;
+                         case "[]": return A2(easing,
+                           {_: {}
+                           ,duration: o.duration - fs._0._0
+                           ,from: o.from + c * fs._0._1
+                           ,to: o.to},
+                           t - fs._0._0);}
+                      break;}
+                 break;
+               case "[]": return o.to;}
+            _E.Case($moduleName,
+            "between lines 104 and 117");
+         }();
       }();
    });
    var linear = easeInPolonomial(1);
+   var easeSaw = function (o) {
+      return function () {
+         var k = keyFrames(linear)(A2(List.map,
+         function (_v21) {
+            return function () {
+               switch (_v21.ctor)
+               {case "_Tuple2":
+                  return {ctor: "_Tuple2"
+                         ,_0: _v21._0 * o.duration
+                         ,_1: _v21._1};}
+               _E.Case($moduleName,
+               "on line 121, column 49 to 66");
+            }();
+         },
+         _J.toList([{ctor: "_Tuple2"
+                    ,_0: 0
+                    ,_1: 0.0}
+                   ,{ctor: "_Tuple2"
+                    ,_0: 0.2
+                    ,_1: 0.4}
+                   ,{ctor: "_Tuple2"
+                    ,_0: 0.4
+                    ,_1: 0.3}
+                   ,{ctor: "_Tuple2"
+                    ,_0: 0.6
+                    ,_1: 0.7}
+                   ,{ctor: "_Tuple2"
+                    ,_0: 0.8
+                    ,_1: 0.6}])));
+         return k(o);
+      }();
+   };
    var EasingState = F2(function (a,
    b) {
       return {_: {}
@@ -422,6 +487,7 @@ Elm.Easing.make = function (_elm) {
    _elm.Easing.values = {_op: _op
                         ,linear: linear
                         ,keyFrames: keyFrames
+                        ,easeSaw: easeSaw
                         ,easeInQuad: easeInQuad
                         ,easeOutQuad: easeOutQuad
                         ,easeInOutQuad: easeInOutQuad
@@ -454,6 +520,8 @@ Elm.Easing.make = function (_elm) {
                         ,easeInOutElastic: easeInOutElastic
                         ,easeInOut: easeInOut
                         ,invert: invert
+                        ,easeFrom: easeFrom
+                        ,easeTo: easeTo
                         ,easeInPolonomial: easeInPolonomial
                         ,easeOutPolonomial: easeOutPolonomial
                         ,easeInOutPolonomial: easeInOutPolonomial
