@@ -77,15 +77,15 @@ type EasingState =
     , playing : Bool
     }
 
-{-| Linear easing, doesn't accelerate -}
+{-| Linear easing function, doesn't accelerate -}
 linear : Easing
 linear = easeInPolonomial 1
 
-{-| Create an easing from keyframes.
+{-| Create an easing function from keyframes.
 
-Takes as first argument list of pairs with the `Time` as first element of the pair and the fraction as second element.
+The first argument is an easing function.
 
-The second argument is an easing function.
+Takes as second argument list of pairs with the `Time` as first element of the pair and the fraction as second element.
 
 ```haskell
 {- With linear interpolation -}
@@ -279,12 +279,12 @@ easeInOutPolonomial i o t = easeInOut o t (easeInPolonomial i) (easeOutPolonomia
     Parameters are the options of the easing, the current time, the begin time
     and the easing function.
 -}
-easingState : EasingOptions -> Time  -> Easing -> EasingState
-easingState o t e = 
+easingState : EaseOptions -> Time -> EasingState
+easingState o t = 
     let 
-        p = isPlaying o t
+        p = isPlaying { o - easing } t
     in 
-        { playing = p, value = if p then e o t else o.to }
+        { playing = p, value = if p then o.easing { o - easing } t else o.to }
 
 {-| The easing is still playing at the current time -}
 isPlaying : EasingOptions -> Float -> Bool
@@ -292,23 +292,3 @@ isPlaying o t = t < o.duration
 
 isFirstHalf : EasingOptions -> Float -> Bool
 isFirstHalf o t = t < o.duration / 2
-
-{-| Apply an ease function with 60 frames per second.
-Returns a signal with an `EasingState`.
-
-```haskell
-  ease { from = 0, to = 400, duration = 3000, easing = linear }
-```
-
--} 
-ease : EaseOptions -> Signal EasingState
-ease = easeWithFps 60
-
-{-| Apply an ease function. Parameters are frames per second and the options of the easing -}
-easeWithFps : Int -> EaseOptions -> Signal EasingState
-easeWithFps f o =
-    let 
-        b = fst <~ timestamp (constant ())
-        e ((t, _),b) _ = easingState {o - easing} (t - b) o.easing
-    in
-        foldp e {value = o.from, playing = True} ((,) <~ timestamp (fps f) ~ b)
