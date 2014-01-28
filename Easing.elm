@@ -10,10 +10,10 @@ They are mainly used to create animations (for user interfaces and games).
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings")
 
 # Options
-@docs EaseOptions, EasingOptions, EasingState
+@docs EaseOptions, EasingOptions
 
 # Easing
-@docs ease, easingState, easeWithFps, isPlaying
+@docs isPlaying
 
 # Easing functions
 @docs Easing,
@@ -30,7 +30,10 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInBack, easeOutBack, easeInOutBack,
       easeInBounce, easeOutBounce, easeInOutBounce,
       easeInElastic, easeOutElastic, easeInOutElastic,
-      easeInPolonomial, easeOutPolonomial, easeInOutPolonomial
+      easeInPolynomial, easeOutPolynomial, easeInOutPolynomial
+
+#Easing function manipulation
+@docs invert, inAndOut
 
 -}
 
@@ -39,7 +42,7 @@ import Time (fps, timestamp, Time)
 {-| Type alias for Easing functions. 
 Parameters are the options of the easing and the current time.
 -}
-type Easing = EasingOptions -> Time -> Float
+type Easing = EasingOptions {} -> Time -> Float
 
 {-| Options for easing.
 
@@ -49,11 +52,9 @@ type Easing = EasingOptions -> Time -> Float
 * <b>easing</b> is the easing function
 
 -}
-type EaseOptions = 
-    { from     : Float
-    , to       : Float
-    , duration : Time
-    , easing   : Easing
+type EaseOptions r = 
+    { r |
+      easing   : Easing
     }
 
 {-| Options for easing.
@@ -61,25 +62,16 @@ Excludes an easing function, so you can use it to ease
 without the `ease` function
 -}
 
-type EasingOptions = 
-    { from     : Float
+type EasingOptions r = 
+    { r | 
+      from     : Float
     , to       : Float
     , duration : Time
     }
 
-{-| Represents the state of the easing
-
-* <b>value</b> is the value at the current time
-* <b>playing</b> whether the easing function is in progress or not
--}
-type EasingState =
-    { value   : Float
-    , playing : Bool
-    }
-
 {-| Linear easing function, doesn't accelerate -}
 linear : Easing
-linear = easeInPolonomial 1
+linear = easeInPolynomial 1
 
 {-| Create an easing function from keyframes.
 
@@ -125,40 +117,40 @@ easeSaw o =
                      
 
 easeInQuad : Easing
-easeInQuad = easeInPolonomial 2
+easeInQuad = easeInPolynomial 2
 
 easeOutQuad : Easing
-easeOutQuad = easeOutPolonomial 2
+easeOutQuad = easeOutPolynomial 2
         
 easeInOutQuad : Easing 
-easeInOutQuad = easeInOutPolonomial 2
+easeInOutQuad = easeInOutPolynomial 2
 
 easeInCubic : Easing
-easeInCubic = easeInPolonomial 3
+easeInCubic = easeInPolynomial 3
         
 easeOutCubic : Easing
-easeOutCubic = easeOutPolonomial 3
+easeOutCubic = easeOutPolynomial 3
         
 easeInOutCubic : Easing
-easeInOutCubic = easeInOutPolonomial 3
+easeInOutCubic = easeInOutPolynomial 3
         
 easeInQuart : Easing
-easeInQuart = easeInPolonomial 4
+easeInQuart = easeInPolynomial 4
         
 easeOutQuart : Easing
-easeOutQuart = easeOutPolonomial 4
+easeOutQuart = easeOutPolynomial 4
 
 easeInOutQuart : Easing
-easeInOutQuart = easeOutPolonomial 4
+easeInOutQuart = easeOutPolynomial 4
 
 easeInQuint : Easing
-easeInQuint = easeInPolonomial 5
+easeInQuint = easeInPolynomial 5
 
 easeOutQuint : Easing
-easeOutQuint = easeOutPolonomial 5
+easeOutQuint = easeOutPolynomial 5
 
 easeInOutQuint : Easing
-easeInOutQuint = easeInOutPolonomial 5
+easeInOutQuint = easeInOutPolynomial 5
         
 easeInSine : Easing
 easeInSine o t = let c = o.to - o.from in -c * cos(t / o.duration * (pi/2)) + c + o.from
@@ -244,7 +236,7 @@ easeOutElastic = invert easeInElastic
 easeInOutElastic : Easing
 easeInOutElastic o t = easeInOut o t easeInElastic easeOutElastic
 
-easeInOut : EasingOptions -> Time -> Easing -> Easing -> Float
+easeInOut : EasingOptions {} -> Time -> Easing -> Easing -> Float
 easeInOut o t e1 e2 = let c = o.to - o.from in
     if isFirstHalf o t then
         e1 o (t * 2) / 2 + o.from
@@ -254,6 +246,13 @@ easeInOut o t e1 e2 = let c = o.to - o.from in
 invert : Easing -> Easing
 invert e o t = let c = o.to - o.from in c - e o (o.duration - t)
 
+inAndOut : Easing -> Easing
+inAndOut e o t = let c = o.to - o.from in
+    if isFirstHalf o t then
+        e o (t * 2) / 2 + o.from
+    else
+        c - e o (t * 2) /2 + o.from
+
 {-| Doesn't ease, but stays at from untill the end -}
 easeFrom : Easing
 easeFrom o _ = o.from
@@ -262,33 +261,30 @@ easeFrom o _ = o.from
 easeTo : Easing
 easeTo o _ = o.to
  
-{-| Ease in with a polonomial function -}
-easeInPolonomial : Int -> Easing
-easeInPolonomial i o t = let c = o.to - o.from in c * (t / o.duration) ^ (toFloat i) + o.from
+{-| Ease in with a polynomial function -}
+easeInPolynomial : Int -> Easing
+easeInPolynomial i o t = let c = o.to - o.from in c * (t / o.duration) ^ (toFloat i) + o.from
 
-{-| Ease out with a polonomial function -}
-easeOutPolonomial : Int -> Easing
-easeOutPolonomial i = invert (easeInPolonomial i)
+{-| Ease out with a polynomial function -}
+easeOutPolynomial : Int -> Easing
+easeOutPolynomial i = invert (easeInPolynomial i)
 
-{-| Ease in and out with a polonomial function -}            
-easeInOutPolonomial : Int -> Easing
-easeInOutPolonomial i o t = easeInOut o t (easeInPolonomial i) (easeOutPolonomial i)
+{-| Ease in and out with a polynomial function -}            
+easeInOutPolynomial : Int -> Easing
+easeInOutPolynomial i o t = easeInOut o t (easeInPolynomial i) (easeOutPolynomial i)
 
-{-| Get the state and value of the easing at the current time
-    Assumes the time is normalized, it started at 0.
-    Parameters are the options of the easing, the current time, the begin time
-    and the easing function.
+{-| Get the value at the current time
 -}
-easingState : EaseOptions -> Time -> EasingState
-easingState o t = 
+ease : EaseOptions (EasingOptions {}) -> Time -> Float
+ease o t = 
     let 
-        p = isPlaying { o - easing } t
+        p = isPlaying o t
     in 
-        { playing = p, value = if p then o.easing { o - easing } t else o.to }
+        if p then o.easing { o - easing } t else o.to
 
 {-| The easing is still playing at the current time -}
-isPlaying : EasingOptions -> Float -> Bool
+isPlaying : EasingOptions (EaseOptions {}) -> Float -> Bool
 isPlaying o t = t < o.duration
 
-isFirstHalf : EasingOptions -> Float -> Bool
+isFirstHalf : EasingOptions {} -> Float -> Bool
 isFirstHalf o t = t < o.duration / 2

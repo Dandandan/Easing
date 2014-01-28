@@ -8,24 +8,45 @@ d = { w = 500
     }
 
 duration = 2000
-easing : Time -> EasingState
-easing = easingState <| { from = 0, to = 1, duration = duration, easing = linear}
+
+animation = { from = 0, to = 1, duration = duration, easing = inAndOut linear}
 
 mod' : Float -> Float -> Float
 mod' n d = let f = floor (n / d) in n - (toFloat f) * d
 
-sun : Form
-sun = filled yellow <| circle 30
+sun : Path
+sun = circle 30
 
-pulse = 
+remember = foldp (::) []
+
+colors = [blue, orange, yellow, green, purple]
+
+list e f xs = case xs of
+    [] -> e
+    _  -> f xs
+
+head' xs = 
+    case xs of
+        [] -> Nothing
+        x::xs  -> Just x
+
+index i xs = list Nothing head' (drop i xs)
+
+update (i,_) xs (dx,dy) = map (\((t, (x,y)),clicks) -> 
     let 
-        update i xs (dx,dy) = map (\(x,y) -> move (toFloat x - toFloat dx /2, toFloat dy /2 - toFloat y) <| alpha (easing (mod' i duration)).value sun) xs
+        currentTime = i - t
+        click' = clicks `mod` length colors
+        color = maybe orange id <| index click' colors
+        playing = isPlaying animation currentTime
+        a = if playing then ease animation currentTime else 0
+        sun' = filled color sun
     in
-        update <~ foldp (+) 0 (fps 60)
-                ~ foldp (::) [] (Mouse.clicks `sampleOn` Mouse.position)
+        move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| alpha a sun') xs
+
+pulse = update <~ timestamp (fps 25)
+                ~ remember (Mouse.clicks `sampleOn` ((,) <~ timestamp Mouse.position ~ count Mouse.clicks))
                 ~ Window.dimensions
 
-main : Signal Element
 main = (\fs (x,y) -> collage x y fs)
              <~ pulse
               ~ Window.dimensions
