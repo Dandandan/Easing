@@ -10,7 +10,7 @@ They are mainly used to create animations (for user interfaces and games).
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings")
 
 # Options
-@docs EaseOptions, EasingOptions
+@docs EaseOptions
 
 # Easing
 @docs isPlaying
@@ -42,9 +42,9 @@ import Time (fps, timestamp, Time)
 {-| Type alias for Easing functions. 
 Parameters are the options of the easing and the current time.
 -}
-type Easing = EasingOptions {} -> Time -> Float
+type Easing = EaseOptions -> Time -> Float
 
-{-| Options for easing.
+{-| Options for easing.e
 
 * <b>from</b> is value at the start
 * <b>to</b> is the value at the end
@@ -52,22 +52,16 @@ type Easing = EasingOptions {} -> Time -> Float
 * <b>easing</b> is the easing function
 
 -}
-type EaseOptions r = 
-    { r |
-      easing   : Easing
+type EaseOptions = 
+    { from     : Float
+    , to       : Float
+    , duration : Time
     }
 
 {-| Options for easing.
 Excludes an easing function, so you can use it to ease
 without the `ease` function
 -}
-
-type EasingOptions r = 
-    { r | 
-      from     : Float
-    , to       : Float
-    , duration : Time
-    }
 
 {-| Linear easing function, doesn't accelerate -}
 linear : Easing
@@ -88,7 +82,7 @@ keyFrames easeFrom [(0, 0.0), (200,0.5), (300,0.7)]
 ```
 
 -}
-keyFrames : Easing -> [(Time, Float)]  -> Easing
+keyFrames : Easing -> [(Time, Float)] -> Easing
 keyFrames easing fs o t = 
     let
         c = o.to - o.from
@@ -236,7 +230,7 @@ easeOutElastic = invert easeInElastic
 easeInOutElastic : Easing
 easeInOutElastic o t = easeInOut o t easeInElastic easeOutElastic
 
-easeInOut : EasingOptions {} -> Time -> Easing -> Easing -> Float
+easeInOut : EaseOptions -> Time -> Easing -> Easing -> Float
 easeInOut o t e1 e2 = let c = o.to - o.from in
     if isFirstHalf o t then
         e1 o (t * 2) / 2 + o.from
@@ -275,16 +269,16 @@ easeInOutPolynomial i o t = easeInOut o t (easeInPolynomial i) (easeOutPolynomia
 
 {-| Get the value at the current time
 -}
-ease : EaseOptions (EasingOptions {}) -> Time -> Float
-ease o t = 
+ease : Easing -> EaseOptions -> Time -> Float
+ease e o t = 
     let 
         p = isPlaying o t
     in 
-        if p then o.easing { o - easing } t else o.to
+        if p then e o t else o.to
 
 {-| The easing is still playing at the current time -}
-isPlaying : EasingOptions (EaseOptions {}) -> Float -> Bool
+isPlaying : EaseOptions -> Float -> Bool
 isPlaying o t = t < o.duration
 
-isFirstHalf : EasingOptions {} -> Float -> Bool
+isFirstHalf : EaseOptions -> Float -> Bool
 isFirstHalf o t = t < o.duration / 2

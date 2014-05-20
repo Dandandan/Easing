@@ -1,5 +1,5 @@
-import open Easing
-import open Graphics.Collage
+import Easing (..)
+import Graphics.Collage (..)
 import Mouse
 import Window
 
@@ -9,7 +9,7 @@ d = { w = 500
 
 duration = 2000
 
-animation = { from = 0, to = 1, duration = duration, easing = inAndOut linear}
+animation = { from = 0, to = 1, duration = duration}
 
 mod' : Float -> Float -> Float
 mod' n d = let f = floor (n / d) in n - (toFloat f) * d
@@ -38,7 +38,7 @@ update (i,_) xs (dx,dy) = map (\((t, (x,y)),clicks) ->
         click' = clicks `mod` length colors
         color = maybe orange id <| index click' colors
         playing = isPlaying animation currentTime
-        a = if playing then ease animation currentTime else 0
+        a = if playing then ease (inAndOut linear) animation currentTime else 0
         sun' = filled color sun
     in
         move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| alpha a sun') xs

@@ -1,14 +1,15 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="UTF-8"><title>Example</title><script type="text/javascript" src="/home/daniel/.cabal/share/Elm-0.11/elm-runtime.js"></script><script type="text/javascript">Elm.Main = Elm.Main || {};
+<html><head><meta charset="UTF-8"><title>Example</title><script type="text/javascript" src="/home/heres/.cabal/share/Elm-0.12.3/elm-runtime.js"></script><script type="text/javascript">Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
+   "use strict";
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values)
    return _elm.Main.values;
    var _N = Elm.Native,
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
+   _A = _N.Array.make(_elm),
    _E = _N.Error.make(_elm),
-   _J = _N.JavaScript.make(_elm),
    $moduleName = "Main";
    var Basics = Elm.Basics.make(_elm);
    var Color = Elm.Color.make(_elm);
@@ -21,8 +22,9 @@ Elm.Main.make = function (_elm) {
    var Maybe = Elm.Maybe.make(_elm);
    var Mouse = Elm.Mouse.make(_elm);
    var Native = Native || {};
+   Native.Json = Elm.Native.Json.make(_elm);
+   var Native = Native || {};
    Native.Ports = Elm.Native.Ports.make(_elm);
-   var Prelude = Elm.Prelude.make(_elm);
    var Signal = Elm.Signal.make(_elm);
    var String = Elm.String.make(_elm);
    var Text = Elm.Text.make(_elm);
@@ -55,18 +57,18 @@ Elm.Main.make = function (_elm) {
       head$,
       A2(List.drop,i,xs));
    });
-   var colors = _J.toList([Color.blue
-                          ,Color.orange
-                          ,Color.yellow
-                          ,Color.green
-                          ,Color.purple]);
+   var colors = _L.fromArray([Color.blue
+                             ,Color.orange
+                             ,Color.yellow
+                             ,Color.green
+                             ,Color.purple]);
    var remember = A2(Signal.foldp,
    F2(function (x,y) {
       return {ctor: "::"
              ,_0: x
              ,_1: y};
    }),
-   _J.toList([]));
+   _L.fromArray([]));
    var sun = Graphics.Collage.circle(30);
    var mod$ = F2(function (n,d) {
       return function () {
@@ -77,7 +79,6 @@ Elm.Main.make = function (_elm) {
    var duration = 2000;
    var animation = {_: {}
                    ,duration: duration
-                   ,easing: Easing.inAndOut(Easing.linear)
                    ,from: 0
                    ,to: 1};
    var update = F3(function (_v4,
@@ -114,7 +115,8 @@ Elm.Main.make = function (_elm) {
                                               var playing = A2(Easing.isPlaying,
                                               animation,
                                               currentTime);
-                                              var a = playing ? A2(Easing.ease,
+                                              var a = playing ? A3(Easing.ease,
+                                              Easing.inAndOut(Easing.linear),
                                               animation,
                                               currentTime) : 0;
                                               return Graphics.Collage.move({ctor: "_Tuple2"
@@ -188,14 +190,15 @@ Elm.Main.make = function (_elm) {
    return _elm.Main.values;
 };Elm.Easing = Elm.Easing || {};
 Elm.Easing.make = function (_elm) {
+   "use strict";
    _elm.Easing = _elm.Easing || {};
    if (_elm.Easing.values)
    return _elm.Easing.values;
    var _N = Elm.Native,
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
+   _A = _N.Array.make(_elm),
    _E = _N.Error.make(_elm),
-   _J = _N.JavaScript.make(_elm),
    $moduleName = "Easing";
    var Basics = Elm.Basics.make(_elm);
    var Color = Elm.Color.make(_elm);
@@ -206,8 +209,9 @@ Elm.Easing.make = function (_elm) {
    var List = Elm.List.make(_elm);
    var Maybe = Elm.Maybe.make(_elm);
    var Native = Native || {};
+   Native.Json = Elm.Native.Json.make(_elm);
+   var Native = Native || {};
    Native.Ports = Elm.Native.Ports.make(_elm);
-   var Prelude = Elm.Prelude.make(_elm);
    var Signal = Elm.Signal.make(_elm);
    var String = Elm.String.make(_elm);
    var Text = Elm.Text.make(_elm);
@@ -223,12 +227,10 @@ Elm.Easing.make = function (_elm) {
       return _U.cmp(t,
       o.duration) < 0;
    });
-   var ease = F2(function (o,t) {
+   var ease = F3(function (e,o,t) {
       return function () {
          var p = A2(isPlaying,o,t);
-         return p ? A2(o.easing,
-         _U.remove("easing",o),
-         t) : o.to;
+         return p ? A2(e,o,t) : o.to;
       }();
    });
    var easeInPolynomial = F3(function (i,
@@ -467,7 +469,7 @@ Elm.Easing.make = function (_elm) {
                  break;
                case "[]": return o.to;}
             _E.Case($moduleName,
-            "between lines 96 and 109");
+            "between lines 90 and 103");
          }();
       }();
    });
@@ -483,42 +485,34 @@ Elm.Easing.make = function (_elm) {
                          ,_0: _v13._0 * o.duration
                          ,_1: _v13._1};}
                _E.Case($moduleName,
-               "on line 113, column 49 to 66");
+               "on line 107, column 49 to 66");
             }();
          },
-         _J.toList([{ctor: "_Tuple2"
-                    ,_0: 0
-                    ,_1: 0.0}
-                   ,{ctor: "_Tuple2"
-                    ,_0: 0.2
-                    ,_1: 0.4}
-                   ,{ctor: "_Tuple2"
-                    ,_0: 0.4
-                    ,_1: 0.3}
-                   ,{ctor: "_Tuple2"
-                    ,_0: 0.6
-                    ,_1: 0.7}
-                   ,{ctor: "_Tuple2"
-                    ,_0: 0.8
-                    ,_1: 0.6}])));
+         _L.fromArray([{ctor: "_Tuple2"
+                       ,_0: 0
+                       ,_1: 0.0}
+                      ,{ctor: "_Tuple2"
+                       ,_0: 0.2
+                       ,_1: 0.4}
+                      ,{ctor: "_Tuple2"
+                       ,_0: 0.4
+                       ,_1: 0.3}
+                      ,{ctor: "_Tuple2"
+                       ,_0: 0.6
+                       ,_1: 0.7}
+                      ,{ctor: "_Tuple2"
+                       ,_0: 0.8
+                       ,_1: 0.6}])));
          return k(o);
       }();
    };
-   var EasingOptions = F4(function (a,
+   var EaseOptions = F3(function (a,
    b,
-   c,
-   d) {
-      return _U.insert("duration",
-      c,
-      _U.insert("to",
-      b,
-      _U.insert("from",a,d)));
-   });
-   var EaseOptions = F2(function (a,
-   b) {
-      return _U.insert("easing",
-      a,
-      b);
+   c) {
+      return {_: {}
+             ,duration: c
+             ,from: a
+             ,to: b};
    });
    _elm.Easing.values = {_op: _op
                         ,linear: linear
@@ -565,7 +559,6 @@ Elm.Easing.make = function (_elm) {
                         ,ease: ease
                         ,isPlaying: isPlaying
                         ,isFirstHalf: isFirstHalf
-                        ,EaseOptions: EaseOptions
-                        ,EasingOptions: EasingOptions};
+                        ,EaseOptions: EaseOptions};
    return _elm.Easing.values;
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script><noscript></noscript></body></html>
