@@ -2,14 +2,13 @@ import Easing (..)
 import Graphics.Collage (..)
 import Mouse
 import Window
+import Time
 
 d = { w = 500
     , h = 500
     }
 
-duration = 2000
-
-animation = { from = 0, to = 1, duration = duration}
+animation = { from = 0, to = 1, duration = second}
 
 mod' : Float -> Float -> Float
 mod' n d = let f = floor (n / d) in n - (toFloat f) * d
