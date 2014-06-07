@@ -4,11 +4,8 @@ import Mouse
 import Window
 import Time
 
-d = { w = 500
-    , h = 500
-    }
-
-animation = { from = 0, to = 1, duration = second}
+transition : Transition
+transition = { from = 0, to = 1, duration = 4 * second}
 
 mod' : Float -> Float -> Float
 mod' n d = let f = floor (n / d) in n - (toFloat f) * d
@@ -36,8 +33,7 @@ update (i,_) xs (dx,dy) = map (\((t, (x,y)),clicks) ->
         currentTime = i - t
         click' = clicks `mod` length colors
         color = maybe orange id <| index click' colors
-        playing = isPlaying animation currentTime
-        a = if playing then ease (inAndOut linear) animation currentTime else 0
+        a = ease (inAndOut linear) transition currentTime
         sun' = filled color sun
     in
         move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| alpha a sun') xs

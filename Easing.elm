@@ -12,6 +12,9 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 # Easing
 @docs ease, isPlaying
 
+#Easing function manipulation
+@docs invert, inAndOut, inOut, flip
+
 # Easing functions
 @docs Easing,
       linear,
@@ -25,12 +28,8 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
-      easeInBounce, easeOutBounce, easeInOutBounce,
       easeInElastic, easeOutElastic, easeInOutElastic,
       easeInPolynomial, easeOutPolynomial, easeInOutPolynomial
-
-#Easing function manipulation
-@docs invert, inAndOut
 
 -}
 
@@ -40,7 +39,7 @@ import Time (fps, timestamp, Time)
 Parameters are the `Transition` and the current `Time`.
 
       linear : Easing
-      linear transition time = transitionfrom + transition.to * (time / duration)
+      linear transition time = transition.from + transition.to * (time / transition.duration)
 -}
 type Easing = Transition -> Time -> Float
 
@@ -60,9 +59,7 @@ type Transition = { from : Float, to : Float, duration : Time }
 -}
 ease : Easing -> Transition -> Time -> Float
 ease easing transition time = 
-    if isPlaying transition time
-        then easing transition time
-        else transition.to
+    easing transition (min time transition.duration)
 
 {-| Create an easing function from keyframes.
 
@@ -102,7 +99,8 @@ isPlaying transition time =
 
 {-| Linear easing function, doesn't accelerate -}
 linear : Easing
-linear = easeInPolynomial 1
+linear =
+    easeInPolynomial 1
 
 easeInQuad : Easing
 easeInQuad =    
@@ -162,7 +160,7 @@ easeOutSine =
 
 easeInOutSine : Easing
 easeInOutSine =
-    easeInOut easeInSine easeOutSine
+    inOut easeInSine easeOutSine
 
 easeInExpo : Easing
 easeInExpo transition time =
@@ -174,7 +172,7 @@ easeOutExpo =
 
 easeInOutExpo : Easing
 easeInOutExpo =
-    easeInOut easeInExpo easeOutExpo
+    inOut easeInExpo easeOutExpo
                         
 easeInCirc : Easing
 easeInCirc =
@@ -189,7 +187,7 @@ easeOutCirc transition time =
 
 easeInOutCirc : Easing
 easeInOutCirc =
-    easeInOut easeInCirc easeOutCirc
+    inOut easeInCirc easeOutCirc
 
 easeInBack : Easing
 easeInBack transition time =
@@ -206,7 +204,7 @@ easeOutBack =
 
 easeInOutBack : Easing
 easeInOutBack =
-    easeInOut easeInBack easeOutBack
+    inOut easeInBack easeOutBack
             
 easeInBounce : Easing
 easeInBounce =
@@ -229,7 +227,7 @@ easeOutBounce transition time =
 
 easeInOutBounce : Easing
 easeInOutBounce =
-    easeInOut easeInBounce easeOutBounce
+    inOut easeInBounce easeOutBounce
 
 easeInElastic : Easing
 easeInElastic transition time = 
@@ -246,33 +244,45 @@ easeOutElastic =
 
 easeInOutElastic : Easing
 easeInOutElastic =
-    easeInOut easeInElastic easeOutElastic
+    inOut easeInElastic easeOutElastic
 
-easeInOut : Easing -> Easing -> Transition -> Time -> Float
-easeInOut e1 e2 transition time =
+{-| Makes an Easing function use . A transition that looks like /, now looks like /\\.
+You can provide two different easing functions.  
+-}
+inOut : Easing -> Easing -> Easing
+inOut e1 e2 transition time =
     if isFirstHalf transition time then
         e1 transition (time * 2) / 2 + transition.from
     else
         e2 transition (time * 2 - transition.duration) / 2 
             + difference transition / 2 + transition.from
 
+{-| Inverts an easing function. A transition that starts fast and continues slow now starts slow and continues fast.
+-}
 invert : Easing -> Easing
 invert easing transition time =
     difference transition - easing transition (transition.duration - time)
 
+{-| Flips an easing function. A transition that looks like /, now looks like \\.
+-}
+flip : Easing -> Easing
+flip easing transition =
+    easing { transition | from <- transition.to, to <- transition.from } 
+
+{-| Makes an Easing function go in and out. A transition that looks like /, now looks like /\\.
+-}
 inAndOut : Easing -> Easing
 inAndOut easing transition time =
-    if isFirstHalf transition time then
-        easing transition (time * 2) / 2 + transition.from
-    else
-        difference transition - easing transition (time * 2) /2 + transition.from
+    if isFirstHalf transition time
+        then easing transition (time * 2)
+        else (flip easing) transition (time * 2 - transition.duration)
 
-{-| Doesn't ease, but stays at from untill the end -}
+{-| Doesn't ease, but stays at `from` untill the end -}
 easeFrom : Easing
 easeFrom transition _ =
     transition.from
 
-{-| Is at the to value immediately -}
+{-| Is at the `to` value immediately -}
 easeTo : Easing
 easeTo transition _ =
     transition.to
@@ -287,12 +297,12 @@ easeOutPolynomial : Int -> Easing
 easeOutPolynomial =
     invert . easeInPolynomial
 
-{-| Ease in and out with a polynomial function -}            
+{-| Ease in and out with a polynomial function -}
 easeInOutPolynomial : Int -> Easing
 easeInOutPolynomial i =
-    easeInOut (easeInPolynomial i) (easeOutPolynomial i)
+    inOut (easeInPolynomial i) (easeOutPolynomial i)
 
-isFirstHalf : Transition -> Float -> Bool
+isFirstHalf : Transition -> Time -> Bool
 isFirstHalf transition time = 
     time < transition.duration / 2
 
