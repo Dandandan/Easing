@@ -5,7 +5,7 @@ import Window
 import Time
 
 transition : Transition
-transition = { from = 0, to = 1, duration = 4 * second}
+transition = { from = 0, to = 100, duration = 3 * second}
 
 mod' : Float -> Float -> Float
 mod' n d = let f = floor (n / d) in n - (toFloat f) * d
@@ -33,10 +33,10 @@ update (i,_) xs (dx,dy) = map (\((t, (x,y)),clicks) ->
         currentTime = i - t
         click' = clicks `mod` length colors
         color = maybe orange id <| index click' colors
-        a = ease (inAndOut linear) transition currentTime
+        a = ease (easeInOutQuart) transition currentTime
         sun' = filled color sun
     in
-        move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| alpha a sun') xs
+        moveX a <| move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| sun') xs
 
 pulse = update <~ timestamp (fps 25)
                 ~ remember (Mouse.clicks `sampleOn` ((,) <~ timestamp Mouse.position ~ count Mouse.clicks))

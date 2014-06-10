@@ -77,9 +77,9 @@ Elm.Main.make = function (_elm) {
       }();
    });
    var transition = {_: {}
-                    ,duration: 4 * Time.second
+                    ,duration: 3 * Time.second
                     ,from: 0
-                    ,to: 1};
+                    ,to: 100};
    var update = F3(function (_v4,
    xs,
    _v5) {
@@ -112,14 +112,12 @@ Elm.Main.make = function (_elm) {
                                               sun);
                                               var currentTime = _v4._0 - _v12._0._0;
                                               var a = A3(Easing.ease,
-                                              Easing.inAndOut(Easing.linear),
+                                              Easing.easeInOutQuart,
                                               transition,
                                               currentTime);
-                                              return Graphics.Collage.move({ctor: "_Tuple2"
-                                                                           ,_0: Basics.toFloat(_v12._0._1._0) - Basics.toFloat(_v5._0) / 2
-                                                                           ,_1: Basics.toFloat(_v5._1) / 2 - Basics.toFloat(_v12._0._1._1)})(A2(Graphics.Collage.alpha,
-                                              a,
-                                              sun$));
+                                              return Graphics.Collage.moveX(a)(Graphics.Collage.move({ctor: "_Tuple2"
+                                                                                                     ,_0: Basics.toFloat(_v12._0._1._0) - Basics.toFloat(_v5._0) / 2
+                                                                                                     ,_1: Basics.toFloat(_v5._1) / 2 - Basics.toFloat(_v12._0._1._1)})(sun$));
                                            }();}
                                       break;}
                                  break;}
@@ -210,224 +208,131 @@ Elm.Easing.make = function (_elm) {
    var Text = Elm.Text.make(_elm);
    var Time = Elm.Time.make(_elm);
    var _op = {};
-   var difference = function (transition) {
-      return transition.to - transition.from;
+   var easeTo = function (_v0) {
+      return function () {
+         return 1;
+      }();
    };
-   var isFirstHalf = F2(function (transition,
+   var easeFrom = function (_v2) {
+      return function () {
+         return 0;
+      }();
+   };
+   var flip = F2(function (easing,
+   time) {
+      return easing(1 - time);
+   });
+   var inAndOut = F2(function (easing,
    time) {
       return _U.cmp(time,
-      transition.duration / 2) < 0;
-   });
-   var easeInPolynomial = F3(function (i,
-   transition,
-   time) {
-      return difference(transition) * Math.pow(time / transition.duration,
-      Basics.toFloat(i)) + transition.from;
-   });
-   var easeTo = F2(function (transition,
-   _v0) {
-      return function () {
-         return transition.to;
-      }();
-   });
-   var easeFrom = F2(function (transition,
-   _v2) {
-      return function () {
-         return transition.from;
-      }();
-   });
-   var flip = F2(function (easing,
-   transition) {
-      return easing(_U.replace([["from"
-                                ,transition.to]
-                               ,["to",transition.from]],
-      transition));
-   });
-   var inAndOut = F3(function (easing,
-   transition,
-   time) {
-      return A2(isFirstHalf,
-      transition,
-      time) ? A2(easing,
-      transition,
-      time * 2) : A3(flip,
+      0.5) < 0 ? easing(time * 2) : A2(flip,
       easing,
-      transition,
-      time * 2 - transition.duration);
+      (time - 0.5) * 2);
    });
-   var invert = F3(function (easing,
-   transition,
+   var invert = F2(function (easing,
    time) {
-      return difference(transition) - A2(easing,
-      transition,
-      transition.duration - time);
+      return 1 - easing(1 - time);
    });
-   var easeOutPolynomial = function ($) {
-      return invert(easeInPolynomial($));
-   };
-   var inOut = F4(function (e1,
+   var inOut = F3(function (e1,
    e2,
-   transition,
    time) {
-      return A2(isFirstHalf,
-      transition,
-      time) ? A2(e1,
-      transition,
-      time * 2) / 2 + transition.from : A2(e2,
-      transition,
-      time * 2 - transition.duration) / 2 + difference(transition) / 2 + transition.from;
+      return _U.cmp(time,
+      0.5) < 0 ? e1(time * 2) / 2 : 0.5 + e2((time - 0.5) * 2) / 2;
    });
-   var easeInOutPolynomial = function (i) {
-      return A2(inOut,
-      easeInPolynomial(i),
-      easeOutPolynomial(i));
-   };
-   var easeInElastic = F2(function (transition,
-   time) {
+   var easeInElastic = function (time) {
       return function () {
-         var t$ = time / transition.duration - 1;
+         var t$ = time - 1;
          var p = 0.3;
          var s = 7.5e-2;
-         return (0 - Math.pow(2,
-         10 * t$) * Basics.sin((t$ - s) * (2 * Basics.pi) / p)) * difference(transition) + transition.from;
+         return 0 - Math.pow(2,
+         10 * t$) * Basics.sin((t$ - s) * (2 * Basics.pi) / p);
       }();
-   });
+   };
    var easeOutElastic = invert(easeInElastic);
    var easeInOutElastic = A2(inOut,
    easeInElastic,
    easeOutElastic);
-   var easeOutBounce = F2(function (transition,
-   time) {
+   var easeOutBounce = function (time) {
       return function () {
-         var t1 = time / transition.duration;
-         var t2 = t1 - 1.5 / 2.75;
-         var t3 = t1 - 2.25 / 2.75;
-         var t4 = t1 - 2.65 / 2.75;
+         var t4 = time - 2.65 / 2.75;
+         var t3 = time - 2.25 / 2.75;
+         var t2 = time - 1.5 / 2.75;
          var a = 7.5625;
-         var c = transition.to - transition.from;
-         return _U.cmp(t1,
-         1 / 2.75) < 0 ? c * (a * t1 * t1) + transition.from : _U.cmp(t1,
-         2 / 2.75) < 0 ? c * (a * t2 * t2 + 0.75) + transition.from : _U.cmp(t1,
-         2.5 / 2.75) < 0 ? c * (a * t3 * t3 + 0.9375) + transition.from : c * (a * t4 * t4 + 0.984375) + transition.from;
+         return _U.cmp(time,
+         1 / 2.75) < 0 ? a * time * time : _U.cmp(time,
+         2 / 2.75) < 0 ? a * t2 * t2 + 0.75 : _U.cmp(time,
+         2.5 / 2.75) < 0 ? a * t3 * t3 + 0.9375 : a * t4 * t4 + 0.984375;
       }();
-   });
+   };
    var easeInBounce = invert(easeOutBounce);
    var easeInOutBounce = A2(inOut,
    easeInBounce,
    easeOutBounce);
-   var easeInBack = F2(function (transition,
-   time) {
-      return function () {
-         var c = transition.to - transition.from;
-         var s = 1.70158;
-         var t$ = time / transition.duration;
-         return c * t$ * t$ * ((s + 1) * t$ - s) + transition.from;
-      }();
-   });
+   var easeInBack = function (time) {
+      return time * time * (2.70158 * time - 1.70158);
+   };
    var easeOutBack = invert(easeInBack);
    var easeInOutBack = A2(inOut,
    easeInBack,
    easeOutBack);
-   var easeOutCirc = F2(function (transition,
-   time) {
-      return function () {
-         var t$ = time / transition.duration - 1;
-         return difference(transition) * Basics.sqrt(1 - t$ * t$) + transition.from;
-      }();
-   });
+   var easeOutCirc = function (time) {
+      return Basics.sqrt(1 - Math.pow(time - 1,
+      2));
+   };
    var easeInCirc = invert(easeOutCirc);
    var easeInOutCirc = A2(inOut,
    easeInCirc,
    easeOutCirc);
-   var easeInExpo = F2(function (transition,
-   time) {
-      return difference(transition) * Math.pow(2,
-      10 * (time / transition.duration - 1)) + transition.from;
-   });
+   var easeInExpo = function (time) {
+      return Math.pow(2,
+      10 * (time - 1));
+   };
    var easeOutExpo = invert(easeInExpo);
    var easeInOutExpo = A2(inOut,
    easeInExpo,
    easeOutExpo);
-   var easeInSine = F2(function (transition,
-   time) {
-      return (0 - difference(transition)) * Basics.cos(time / transition.duration * (Basics.pi / 2)) + difference(transition) + transition.from;
-   });
-   var easeOutSine = invert(easeInSine);
+   var easeOutSine = function (time) {
+      return Basics.sin(time * (Basics.pi / 2));
+   };
+   var easeInSine = invert(easeOutSine);
    var easeInOutSine = A2(inOut,
    easeInSine,
    easeOutSine);
-   var easeInOutQuint = easeInOutPolynomial(5);
-   var easeOutQuint = easeOutPolynomial(5);
-   var easeInQuint = easeInPolynomial(5);
-   var easeInOutQuart = easeOutPolynomial(4);
-   var easeOutQuart = easeOutPolynomial(4);
-   var easeInQuart = easeInPolynomial(4);
-   var easeInOutCubic = easeInOutPolynomial(3);
-   var easeOutCubic = easeOutPolynomial(3);
-   var easeInCubic = easeInPolynomial(3);
-   var easeInOutQuad = easeInOutPolynomial(2);
-   var easeOutQuad = easeOutPolynomial(2);
-   var easeInQuad = easeInPolynomial(2);
-   var linear = easeInPolynomial(1);
-   var isPlaying = F2(function (transition,
-   time) {
-      return _U.cmp(time,
-      transition.duration) < 0;
-   });
-   var keyFrames = F4(function (easing,
-   frames,
-   transition,
-   time) {
-      return function () {
-         var d = difference(transition);
-         return function () {
-            switch (frames.ctor)
-            {case "::":
-               switch (frames._0.ctor)
-                 {case "_Tuple2":
-                    switch (frames._1.ctor)
-                      {case "::":
-                         switch (frames._1._0.ctor)
-                           {case "_Tuple2":
-                              return _U.cmp(frames._1._0._0,
-                                time) < 1 ? A4(keyFrames,
-                                easing,
-                                {ctor: "::"
-                                ,_0: {ctor: "_Tuple2"
-                                     ,_0: frames._1._0._0
-                                     ,_1: frames._1._0._1}
-                                ,_1: frames._1._1},
-                                transition,
-                                time) : A2(easing,
-                                {_: {}
-                                ,duration: frames._1._0._0 - frames._0._0
-                                ,from: transition.from + d * frames._0._1
-                                ,to: transition.from + d * frames._1._0._1},
-                                time - frames._0._0);}
-                           break;
-                         case "[]": return A2(easing,
-                           {_: {}
-                           ,duration: transition.duration - frames._0._0
-                           ,from: transition.from + d * frames._0._1
-                           ,to: transition.to},
-                           time - frames._0._0);}
-                      break;}
-                 break;
-               case "[]":
-               return transition.to;}
-            _E.Case($moduleName,
-            "between lines 79 and 96");
-         }();
-      }();
-   });
+   var easeInQuint = function (time) {
+      return Math.pow(time,5);
+   };
+   var easeOutQuint = invert(easeInQuint);
+   var easeInOutQuint = A2(inOut,
+   easeInQuint,
+   easeOutQuint);
+   var easeInQuart = function (time) {
+      return Math.pow(time,4);
+   };
+   var easeOutQuart = invert(easeInQuart);
+   var easeInOutQuart = A2(inOut,
+   easeInQuart,
+   easeOutQuart);
+   var easeOutCubic = invert(easeOutCubic);
+   var easeInCubic = function (time) {
+      return Math.pow(time,3);
+   };
+   var easeInOutCubic = A2(inOut,
+   easeInCubic,
+   easeOutCubic);
+   var easeInQuad = function (time) {
+      return Math.pow(time,2);
+   };
+   var easeOutQuad = invert(easeInQuad);
+   var easeInOutQuad = A2(inOut,
+   easeInQuad,
+   easeOutQuad);
+   var linear = Basics.id;
    var ease = F3(function (easing,
    transition,
    time) {
-      return A2(easing,
-      transition,
-      A2(Basics.min,
-      time,
-      transition.duration));
+      return transition.from + (transition.to - transition.from) * easing(A2(Basics.min,
+      time / transition.duration,
+      1));
    });
    var Transition = F3(function (a,
    b,
@@ -439,8 +344,6 @@ Elm.Easing.make = function (_elm) {
    });
    _elm.Easing.values = {_op: _op
                         ,ease: ease
-                        ,keyFrames: keyFrames
-                        ,isPlaying: isPlaying
                         ,linear: linear
                         ,easeInQuad: easeInQuad
                         ,easeOutQuad: easeOutQuad
@@ -478,11 +381,6 @@ Elm.Easing.make = function (_elm) {
                         ,inAndOut: inAndOut
                         ,easeFrom: easeFrom
                         ,easeTo: easeTo
-                        ,easeInPolynomial: easeInPolynomial
-                        ,easeOutPolynomial: easeOutPolynomial
-                        ,easeInOutPolynomial: easeInOutPolynomial
-                        ,isFirstHalf: isFirstHalf
-                        ,difference: difference
                         ,Transition: Transition};
    return _elm.Easing.values;
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script><noscript></noscript></body></html>
