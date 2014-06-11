@@ -2,9 +2,26 @@
 
 module Easing where
 
-{-| Library for working creating animations and transitions with easing functions. Easing functions interpolate a value over time.
+{-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time.
 
-You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings")
+You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
+
+
+    linear : Easing
+    linear x = x
+
+    sampleAnimation : Time -> Float
+    sampleAnimation = ease easeInCubic { from = 0, to = 10, duration = second }
+
+    customAnimation : Time -> Float
+    customAnimation = ease (\x -> x ^ 2.4) { from = 0, to = 200, duration = 4 * second }
+
+    tenSteps : Easing
+    tenSteps = toFloat (floor (x * 10)) / 10
+
+    tenStepsAnimation : Time -> Float
+    tenStepsAnimation = ease tenSteps { from = 0, to = 5, duration = second }
+
 
 # Transition settings
 @docs Transition
@@ -18,7 +35,6 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 # Easing functions
 @docs Easing,
       linear,
-      easeFrom, easeTo,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
@@ -195,11 +211,3 @@ inAndOut easing time =
     if time < 0.5
         then easing (time * 2)
         else (flip easing) ((time - 0.5) * 2)
-
-{-| Doesn't ease, but stays at `from` untill the end -}
-easeFrom : Easing
-easeFrom _ = 0
-
-{-| Is at the `to` value immediately -}
-easeTo : Easing
-easeTo _ = 1

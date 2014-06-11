@@ -208,16 +208,6 @@ Elm.Easing.make = function (_elm) {
    var Text = Elm.Text.make(_elm);
    var Time = Elm.Time.make(_elm);
    var _op = {};
-   var easeTo = function (_v0) {
-      return function () {
-         return 1;
-      }();
-   };
-   var easeFrom = function (_v2) {
-      return function () {
-         return 0;
-      }();
-   };
    var flip = F2(function (easing,
    time) {
       return easing(1 - time);
@@ -379,8 +369,6 @@ Elm.Easing.make = function (_elm) {
                         ,invert: invert
                         ,flip: flip
                         ,inAndOut: inAndOut
-                        ,easeFrom: easeFrom
-                        ,easeTo: easeTo
                         ,Transition: Transition};
    return _elm.Easing.values;
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script><noscript></noscript></body></html>
