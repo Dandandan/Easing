@@ -1,5 +1,5 @@
 {
-    "version": "0.4.1",
+    "version": "0.4.2",
     "summary": "Animations and transitions using easing functions",
     "description": "Library for working with easing functions",
     "license": "BSD3",
@@ -11,3 +11,4 @@
     },
     "repository": "https://github.com/Dandandan/Easing.git"
 }
+
