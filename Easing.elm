@@ -24,7 +24,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 
 
 # Transition and Interpolation
-@docs Transition
+@docs Transition, Interpolation
 
 # Easing
 @docs ease
