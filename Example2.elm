@@ -12,8 +12,8 @@ click = input ()
 play : Easing -> Time -> Time -> Element
 play e b t =
     let
-        x = ease e number { from = -180, to = 180, duration = second } (t - b)
-        c = ease e color { from = blue, to = red, duration = second } (t - b)
+        x = ease e number -180 180 second (t - b)
+        c = ease e color blue red second (t - b)
         movingCircle = circle 10 |> filled c |> moveX x
      in
         collage 450 100 [movingCircle]

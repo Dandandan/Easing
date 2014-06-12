@@ -31,159 +31,79 @@ Elm.Main.make = function (_elm) {
    var Time = Elm.Time.make(_elm);
    var Window = Elm.Window.make(_elm);
    var _op = {};
-   var head$ = function (xs) {
+   var update = F3(function (_v0,
+   _v1,
+   _v2) {
       return function () {
-         switch (xs.ctor)
-         {case "::":
-            return Maybe.Just(xs._0);
-            case "[]":
-            return Maybe.Nothing;}
-         _E.Case($moduleName,
-         "between lines 29 and 31");
-      }();
-   };
-   var list = F3(function (e,
-   f,
-   xs) {
-      return function () {
-         switch (xs.ctor)
-         {case "[]": return e;}
-         return f(xs);
-      }();
-   });
-   var index = F2(function (i,xs) {
-      return A3(list,
-      Maybe.Nothing,
-      head$,
-      A2(List.drop,i,xs));
-   });
-   var colors = _L.fromArray([Color.blue
-                             ,Color.orange
-                             ,Color.yellow
-                             ,Color.green
-                             ,Color.purple]);
-   var remember = A2(Signal.foldp,
-   F2(function (x,y) {
-      return {ctor: "::"
-             ,_0: x
-             ,_1: y};
-   }),
-   _L.fromArray([]));
-   var sun = Graphics.Collage.circle(30);
-   var mod$ = F2(function (n,d) {
-      return function () {
-         var f = Basics.floor(n / d);
-         return n - Basics.toFloat(f) * d;
-      }();
-   });
-   var duration = 2000;
-   var animation = {_: {}
-                   ,duration: duration
-                   ,from: 0
-                   ,to: 1};
-   var update = F3(function (_v4,
-   xs,
-   _v5) {
-      return function () {
-         switch (_v5.ctor)
+         switch (_v2.ctor)
          {case "_Tuple2":
             return function () {
-                 switch (_v4.ctor)
+                 switch (_v1.ctor)
                  {case "_Tuple2":
-                    return A2(List.map,
-                      function (_v12) {
+                    switch (_v1._1.ctor)
+                      {case "_Tuple2":
                          return function () {
-                            switch (_v12.ctor)
-                            {case "_Tuple2":
-                               switch (_v12._0.ctor)
-                                 {case "_Tuple2":
-                                    switch (_v12._0._1.ctor)
-                                      {case "_Tuple2":
-                                         return function () {
-                                              var click$ = A2(Basics.mod,
-                                              _v12._1,
-                                              List.length(colors));
-                                              var color = A2(Maybe.maybe,
-                                              Color.orange,
-                                              Basics.id)(A2(index,
-                                              click$,
-                                              colors));
-                                              var sun$ = A2(Graphics.Collage.filled,
-                                              color,
-                                              sun);
-                                              var currentTime = _v4._0 - _v12._0._0;
-                                              var playing = A2(Easing.isPlaying,
-                                              animation,
-                                              currentTime);
-                                              var a = playing ? A3(Easing.ease,
-                                              Easing.inAndOut(Easing.linear),
-                                              animation,
-                                              currentTime) : 0;
-                                              return Graphics.Collage.move({ctor: "_Tuple2"
-                                                                           ,_0: Basics.toFloat(_v12._0._1._0) - Basics.toFloat(_v5._0) / 2
-                                                                           ,_1: Basics.toFloat(_v5._1) / 2 - Basics.toFloat(_v12._0._1._1)})(A2(Graphics.Collage.alpha,
-                                              a,
-                                              sun$));
-                                           }();}
-                                      break;}
-                                 break;}
-                            _E.Case($moduleName,
-                            "between lines 36 and 44");
-                         }();
-                      },
-                      xs);}
+                              switch (_v0.ctor)
+                              {case "_Tuple2":
+                                 return function () {
+                                      var c = A6(Easing.ease,
+                                      Easing.easeInOutQuart,
+                                      Easing.color,
+                                      Color.blue,
+                                      Color.red,
+                                      Time.second,
+                                      _v0._0 - _v1._0);
+                                      var sun$ = Graphics.Collage.filled(c)(Graphics.Collage.circle(30));
+                                      var a = A6(Easing.ease,
+                                      Easing.easeInOutQuart,
+                                      Easing.point2d,
+                                      {_: {},x: 0,y: 0},
+                                      {_: {},x: 200,y: -200},
+                                      Time.second,
+                                      _v0._0 - _v1._0);
+                                      return Graphics.Collage.move({ctor: "_Tuple2"
+                                                                   ,_0: a.x
+                                                                   ,_1: a.y})(Graphics.Collage.move({ctor: "_Tuple2"
+                                                                                                    ,_0: Basics.toFloat(_v1._1._0) - Basics.toFloat(_v2._0) / 2
+                                                                                                    ,_1: Basics.toFloat(_v2._1) / 2 - Basics.toFloat(_v1._1._1)})(sun$));
+                                   }();}
+                              _E.Case($moduleName,
+                              "between lines 8 and 13");
+                           }();}
+                      break;}
                  _E.Case($moduleName,
-                 "between lines 35 and 44");
+                 "between lines 8 and 13");
               }();}
          _E.Case($moduleName,
-         "between lines 35 and 44");
+         "between lines 8 and 13");
       }();
    });
    var pulse = A2(Signal._op["~"],
    A2(Signal._op["~"],
    A2(Signal._op["<~"],
    update,
-   Time.timestamp(Time.fps(25))),
-   remember(A2(Signal.sampleOn,
+   Time.timestamp(Time.fps(30))),
+   A2(Signal.sampleOn,
    Mouse.clicks,
-   A2(Signal._op["~"],
-   A2(Signal._op["<~"],
-   F2(function (v0,v1) {
-      return {ctor: "_Tuple2"
-             ,_0: v0
-             ,_1: v1};
-   }),
-   Time.timestamp(Mouse.position)),
-   Signal.count(Mouse.clicks))))),
+   Time.timestamp(Mouse.position))),
    Window.dimensions);
    var main = A2(Signal._op["~"],
    A2(Signal._op["<~"],
-   F2(function (fs,_v20) {
+   F2(function (fs,_v14) {
       return function () {
-         switch (_v20.ctor)
+         switch (_v14.ctor)
          {case "_Tuple2":
             return A3(Graphics.Collage.collage,
-              _v20._0,
-              _v20._1,
-              fs);}
+              _v14._0,
+              _v14._1,
+              _L.fromArray([fs]));}
          _E.Case($moduleName,
-         "on line 50, column 22 to 36");
+         "on line 21, column 22 to 38");
       }();
    }),
    pulse),
    Window.dimensions);
-   var d = {_: {},h: 500,w: 500};
    _elm.Main.values = {_op: _op
-                      ,d: d
-                      ,duration: duration
-                      ,animation: animation
-                      ,mod$: mod$
-                      ,sun: sun
-                      ,remember: remember
-                      ,colors: colors
-                      ,list: list
-                      ,head$: head$
-                      ,index: index
                       ,update: update
                       ,pulse: pulse
                       ,main: main};
@@ -217,307 +137,197 @@ Elm.Easing.make = function (_elm) {
    var Text = Elm.Text.make(_elm);
    var Time = Elm.Time.make(_elm);
    var _op = {};
-   var isFirstHalf = F2(function (o,
-   t) {
-      return _U.cmp(t,
-      o.duration / 2) < 0;
+   var flip = F2(function (easing,
+   time) {
+      return easing(1 - time);
    });
-   var isPlaying = F2(function (o,
-   t) {
-      return _U.cmp(t,
-      o.duration) < 0;
+   var inAndOut = F2(function (easing,
+   time) {
+      return _U.cmp(time,
+      0.5) < 0 ? easing(time * 2) : A2(flip,
+      easing,
+      (time - 0.5) * 2);
    });
-   var ease = F3(function (e,o,t) {
+   var invert = F2(function (easing,
+   time) {
+      return 1 - easing(1 - time);
+   });
+   var inOut = F3(function (e1,
+   e2,
+   time) {
+      return _U.cmp(time,
+      0.5) < 0 ? e1(time * 2) / 2 : 0.5 + e2((time - 0.5) * 2) / 2;
+   });
+   var easeInElastic = function (time) {
       return function () {
-         var p = A2(isPlaying,o,t);
-         return p ? A2(e,o,t) : o.to;
-      }();
-   });
-   var easeInPolynomial = F3(function (i,
-   o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return c * Math.pow(t / o.duration,
-         Basics.toFloat(i)) + o.from;
-      }();
-   });
-   var easeTo = F2(function (o,
-   _v0) {
-      return function () {
-         return o.to;
-      }();
-   });
-   var easeFrom = F2(function (o,
-   _v2) {
-      return function () {
-         return o.from;
-      }();
-   });
-   var inAndOut = F3(function (e,
-   o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return A2(isFirstHalf,
-         o,
-         t) ? A2(e,
-         o,
-         t * 2) / 2 + o.from : c - A2(e,
-         o,
-         t * 2) / 2 + o.from;
-      }();
-   });
-   var invert = F3(function (e,
-   o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return c - A2(e,
-         o,
-         o.duration - t);
-      }();
-   });
-   var easeOutPolynomial = function (i) {
-      return invert(easeInPolynomial(i));
-   };
-   var easeInOut = F4(function (o,
-   t,
-   e1,
-   e2) {
-      return function () {
-         var c = o.to - o.from;
-         return A2(isFirstHalf,
-         o,
-         t) ? A2(e1,
-         o,
-         t * 2) / 2 + o.from : A2(e2,
-         o,
-         t * 2 - o.duration) / 2 + c / 2 + o.from;
-      }();
-   });
-   var easeInOutPolynomial = F3(function (i,
-   o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInPolynomial(i),
-      easeOutPolynomial(i));
-   });
-   var easeInElastic = F2(function (o,
-   t) {
-      return function () {
-         var t$ = t / o.duration - 1;
+         var t$ = time - 1;
          var p = 0.3;
          var s = 7.5e-2;
-         var c = o.to - o.from;
-         return (0 - Math.pow(2,
-         10 * t$) * Basics.sin((t$ - s) * (2 * Basics.pi) / p)) * c + o.from;
-      }();
-   });
-   var easeOutElastic = invert(easeInElastic);
-   var easeInOutElastic = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInElastic,
-      easeOutElastic);
-   });
-   var easeOutBounce = F2(function (o,
-   t) {
-      return function () {
-         var t1 = t / o.duration;
-         var t2 = t1 - 1.5 / 2.75;
-         var t3 = t1 - 2.25 / 2.75;
-         var t4 = t1 - 2.65 / 2.75;
-         var a = 7.5625;
-         var c = o.to - o.from;
-         return _U.cmp(t1,
-         1 / 2.75) < 0 ? c * (a * t1 * t1) + o.from : _U.cmp(t1,
-         2 / 2.75) < 0 ? c * (a * t2 * t2 + 0.75) + o.from : _U.cmp(t1,
-         2.5 / 2.75) < 0 ? c * (a * t3 * t3 + 0.9375) + o.from : c * (a * t4 * t4 + 0.984375) + o.from;
-      }();
-   });
-   var easeInBounce = invert(easeOutBounce);
-   var easeInOutBounce = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInBounce,
-      easeOutBounce);
-   });
-   var easeInBack = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         var s = 1.70158;
-         var t$ = t / o.duration;
-         return c * t$ * t$ * ((s + 1) * t$ - s) + o.from;
-      }();
-   });
-   var easeOutBack = invert(easeInBack);
-   var easeInOutBack = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInBack,
-      easeOutBack);
-   });
-   var easeOutCirc = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         var t$ = t / o.duration - 1;
-         return c * Basics.sqrt(1 - t$ * t$) + o.from;
-      }();
-   });
-   var easeInCirc = invert(easeOutCirc);
-   var easeInOutCirc = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInCirc,
-      easeOutCirc);
-   });
-   var easeInExpo = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return c * Math.pow(2,
-         10 * (t / o.duration - 1)) + o.from;
-      }();
-   });
-   var easeOutExpo = invert(easeInExpo);
-   var easeInOutExpo = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInExpo,
-      easeOutExpo);
-   });
-   var easeInSine = F2(function (o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return (0 - c) * Basics.cos(t / o.duration * (Basics.pi / 2)) + c + o.from;
-      }();
-   });
-   var easeOutSine = invert(easeInSine);
-   var easeInOutSine = F2(function (o,
-   t) {
-      return A4(easeInOut,
-      o,
-      t,
-      easeInSine,
-      easeOutSine);
-   });
-   var easeInOutQuint = easeInOutPolynomial(5);
-   var easeOutQuint = easeOutPolynomial(5);
-   var easeInQuint = easeInPolynomial(5);
-   var easeInOutQuart = easeOutPolynomial(4);
-   var easeOutQuart = easeOutPolynomial(4);
-   var easeInQuart = easeInPolynomial(4);
-   var easeInOutCubic = easeInOutPolynomial(3);
-   var easeOutCubic = easeOutPolynomial(3);
-   var easeInCubic = easeInPolynomial(3);
-   var easeInOutQuad = easeInOutPolynomial(2);
-   var easeOutQuad = easeOutPolynomial(2);
-   var easeInQuad = easeInPolynomial(2);
-   var keyFrames = F4(function (easing,
-   fs,
-   o,
-   t) {
-      return function () {
-         var c = o.to - o.from;
-         return function () {
-            switch (fs.ctor)
-            {case "::": switch (fs._0.ctor)
-                 {case "_Tuple2":
-                    switch (fs._1.ctor)
-                      {case "::":
-                         switch (fs._1._0.ctor)
-                           {case "_Tuple2":
-                              return _U.cmp(fs._1._0._0,
-                                t) < 1 ? A4(keyFrames,
-                                easing,
-                                {ctor: "::"
-                                ,_0: {ctor: "_Tuple2"
-                                     ,_0: fs._1._0._0
-                                     ,_1: fs._1._0._1}
-                                ,_1: fs._1._1},
-                                o,
-                                t) : A2(easing,
-                                {_: {}
-                                ,duration: fs._1._0._0 - fs._0._0
-                                ,from: o.from + c * fs._0._1
-                                ,to: o.from + c * fs._1._0._1},
-                                t - fs._0._0);}
-                           break;
-                         case "[]": return A2(easing,
-                           {_: {}
-                           ,duration: o.duration - fs._0._0
-                           ,from: o.from + c * fs._0._1
-                           ,to: o.to},
-                           t - fs._0._0);}
-                      break;}
-                 break;
-               case "[]": return o.to;}
-            _E.Case($moduleName,
-            "between lines 90 and 103");
-         }();
-      }();
-   });
-   var linear = easeInPolynomial(1);
-   var easeSaw = function (o) {
-      return function () {
-         var k = keyFrames(linear)(A2(List.map,
-         function (_v13) {
-            return function () {
-               switch (_v13.ctor)
-               {case "_Tuple2":
-                  return {ctor: "_Tuple2"
-                         ,_0: _v13._0 * o.duration
-                         ,_1: _v13._1};}
-               _E.Case($moduleName,
-               "on line 107, column 49 to 66");
-            }();
-         },
-         _L.fromArray([{ctor: "_Tuple2"
-                       ,_0: 0
-                       ,_1: 0.0}
-                      ,{ctor: "_Tuple2"
-                       ,_0: 0.2
-                       ,_1: 0.4}
-                      ,{ctor: "_Tuple2"
-                       ,_0: 0.4
-                       ,_1: 0.3}
-                      ,{ctor: "_Tuple2"
-                       ,_0: 0.6
-                       ,_1: 0.7}
-                      ,{ctor: "_Tuple2"
-                       ,_0: 0.8
-                       ,_1: 0.6}])));
-         return k(o);
+         return 0 - Math.pow(2,
+         10 * t$) * Basics.sin((t$ - s) * (2 * Basics.pi) / p);
       }();
    };
-   var EaseOptions = F3(function (a,
-   b,
-   c) {
+   var easeOutElastic = invert(easeInElastic);
+   var easeInOutElastic = A2(inOut,
+   easeInElastic,
+   easeOutElastic);
+   var easeOutBounce = function (time) {
+      return function () {
+         var t4 = time - 2.65 / 2.75;
+         var t3 = time - 2.25 / 2.75;
+         var t2 = time - 1.5 / 2.75;
+         var a = 7.5625;
+         return _U.cmp(time,
+         1 / 2.75) < 0 ? a * time * time : _U.cmp(time,
+         2 / 2.75) < 0 ? a * t2 * t2 + 0.75 : _U.cmp(time,
+         2.5 / 2.75) < 0 ? a * t3 * t3 + 0.9375 : a * t4 * t4 + 0.984375;
+      }();
+   };
+   var easeInBounce = invert(easeOutBounce);
+   var easeInOutBounce = A2(inOut,
+   easeInBounce,
+   easeOutBounce);
+   var easeInBack = function (time) {
+      return time * time * (2.70158 * time - 1.70158);
+   };
+   var easeOutBack = invert(easeInBack);
+   var easeInOutBack = A2(inOut,
+   easeInBack,
+   easeOutBack);
+   var easeOutCirc = function (time) {
+      return Basics.sqrt(1 - Math.pow(time - 1,
+      2));
+   };
+   var easeInCirc = invert(easeOutCirc);
+   var easeInOutCirc = A2(inOut,
+   easeInCirc,
+   easeOutCirc);
+   var easeInExpo = function (time) {
+      return Math.pow(2,
+      10 * (time - 1));
+   };
+   var easeOutExpo = invert(easeInExpo);
+   var easeInOutExpo = A2(inOut,
+   easeInExpo,
+   easeOutExpo);
+   var easeOutSine = function (time) {
+      return Basics.sin(time * (Basics.pi / 2));
+   };
+   var easeInSine = invert(easeOutSine);
+   var easeInOutSine = A2(inOut,
+   easeInSine,
+   easeOutSine);
+   var easeInQuint = function (time) {
+      return Math.pow(time,5);
+   };
+   var easeOutQuint = invert(easeInQuint);
+   var easeInOutQuint = A2(inOut,
+   easeInQuint,
+   easeOutQuint);
+   var easeInQuart = function (time) {
+      return Math.pow(time,4);
+   };
+   var easeOutQuart = invert(easeInQuart);
+   var easeInOutQuart = A2(inOut,
+   easeInQuart,
+   easeOutQuart);
+   var easeInCubic = function (time) {
+      return Math.pow(time,3);
+   };
+   var easeOutCubic = invert(easeInCubic);
+   var easeInOutCubic = A2(inOut,
+   easeInCubic,
+   easeOutCubic);
+   var easeInQuad = function (time) {
+      return Math.pow(time,2);
+   };
+   var easeOutQuad = invert(easeInQuad);
+   var easeInOutQuad = A2(inOut,
+   easeInQuad,
+   easeOutQuad);
+   var linear = Basics.id;
+   var number = F3(function (from,
+   to,
+   v) {
+      return from + (to - from) * v;
+   });
+   var point2d = F3(function (from,
+   to,
+   v) {
       return {_: {}
-             ,duration: c
-             ,from: a
-             ,to: b};
+             ,x: A3(number,from.x,to.x,v)
+             ,y: A3(number,from.y,to.y,v)};
+   });
+   var point3d = F3(function (from,
+   to,
+   v) {
+      return {_: {}
+             ,x: A3(number,from.x,to.x,v)
+             ,y: A3(number,from.y,to.y,v)
+             ,z: A3(number,from.z,to.z,v)};
+   });
+   var color = F3(function (from,
+   to,
+   v) {
+      return function () {
+         var float$ = F3(function (from,
+         to,
+         v) {
+            return Basics.round(A3(number,
+            Basics.toFloat(from),
+            Basics.toFloat(to),
+            v));
+         });
+         var $ = {ctor: "_Tuple2"
+                 ,_0: Color.toRgb(from)
+                 ,_1: Color.toRgb(to)},
+         rgb1 = $._0,
+         rgb2 = $._1;
+         var $ = {ctor: "_Tuple4"
+                 ,_0: rgb1.red
+                 ,_1: rgb1.green
+                 ,_2: rgb1.blue
+                 ,_3: rgb1.alpha},
+         r1 = $._0,
+         g1 = $._1,
+         b1 = $._2,
+         a1 = $._3;
+         var $ = {ctor: "_Tuple4"
+                 ,_0: rgb2.red
+                 ,_1: rgb2.green
+                 ,_2: rgb2.blue
+                 ,_3: rgb2.alpha},
+         r2 = $._0,
+         g2 = $._1,
+         b2 = $._2,
+         a2 = $._3;
+         return A4(Color.rgba,
+         A3(float$,r1,r2,v),
+         A3(float$,g1,g2,v),
+         A3(float$,b1,b2,v),
+         A3(number,a1,a2,v));
+      }();
+   });
+   var ease = F6(function (easing,
+   interpolate,
+   from,
+   to,
+   duration,
+   time) {
+      return A3(interpolate,
+      from,
+      to,
+      easing(A2(Basics.min,
+      time / duration,
+      1)));
    });
    _elm.Easing.values = {_op: _op
+                        ,ease: ease
+                        ,number: number
+                        ,point2d: point2d
+                        ,point3d: point3d
+                        ,color: color
                         ,linear: linear
-                        ,keyFrames: keyFrames
-                        ,easeSaw: easeSaw
                         ,easeInQuad: easeInQuad
                         ,easeOutQuad: easeOutQuad
                         ,easeInOutQuad: easeInOutQuad
@@ -548,17 +358,9 @@ Elm.Easing.make = function (_elm) {
                         ,easeInElastic: easeInElastic
                         ,easeOutElastic: easeOutElastic
                         ,easeInOutElastic: easeInOutElastic
-                        ,easeInOut: easeInOut
+                        ,inOut: inOut
                         ,invert: invert
-                        ,inAndOut: inAndOut
-                        ,easeFrom: easeFrom
-                        ,easeTo: easeTo
-                        ,easeInPolynomial: easeInPolynomial
-                        ,easeOutPolynomial: easeOutPolynomial
-                        ,easeInOutPolynomial: easeInOutPolynomial
-                        ,ease: ease
-                        ,isPlaying: isPlaying
-                        ,isFirstHalf: isFirstHalf
-                        ,EaseOptions: EaseOptions};
+                        ,flip: flip
+                        ,inAndOut: inAndOut};
    return _elm.Easing.values;
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script><noscript></noscript></body></html>

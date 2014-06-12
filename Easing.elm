@@ -6,25 +6,36 @@ module Easing where
 
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
-
-    linear : Easing
-    linear x = x
-
     sampleAnimation : Time -> Float
-    sampleAnimation = ease easeInCubic float { from = 0, to = 10, duration = second }
+    sampleAnimation = ease easeInCubic float 0 10 second
 
+    {- Transition from blue to red -}
     customAnimation : Time -> Color
-    customAnimation = ease (\x -> x ^ 2.4) color { from = blue, to = red, duration = 4 * second }
+    customAnimation = ease (\x -> x ^ 2.4) color blue red second
 
     tenSteps : Easing
     tenSteps = toFloat (floor (x * 10)) / 10
 
+    {- Animate between 0 and 5 in ten steps with a duration of a second -}
     tenStepsAnimation : Time -> Float
-    tenStepsAnimation = ease tenSteps float  { from = 0, to = 5, duration = second }
+    tenStepsAnimation = ease tenSteps number 0 5 second
+
+    {- Create your own Easing functions -}
+    myEasing : Easing
+    myEasing x = x ^ 2.4
+
+    {- Create your own Interpolation functions -}
+    vec : Interpolation Vec3
+    vec from to v = from `add` ((to `sub` from) `scale` v)
+
+    {- Use your Easing and Interpolation functions -}
+    3dmovement : Time -> Vec3
+    3dmovement = ease myEasing vec (vec3 0 0 0) (vec3 10 10 10) (3 * second)
 
 
-# Transition and Interpolation
-@docs Transition, Interpolation
+
+# Interpolation
+@docs Interpolation
 
 # Easing
 @docs ease
@@ -54,38 +65,28 @@ import Time (Time)
 import Color (Color,toRgb, rgba)
 
 {-| Type alias for Easing functions.
-
-      linear : Easing
-      linear time = time
 -}
 type Easing = Float -> Float
-
-{-| Easing `Transition`.
-
-* `from`, the value value at the start
-* `to`, the value at the end
-* `duration`, the duration of the transition
-
--}
-type Transition a = { from : a, to : a, duration : Time }
 
 {-| Easing `Interpolation`.
 A interpolation of two values of type `a` using a Float value.
 
     float : Interpolation Float
     float from to v = from + (from - to) * v
-|-}
+-}
 type Interpolation a = a -> a -> Float -> a
 
-{-| Get the value at the current time
+{-| Ease a value.
+      Parameters are in order: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
 
-      ease linear number { from = 0, to = 20, duration = second }     0      == 0
-      ease linear number { from = 0, to = 20, duration = second }     second == 20
-      ease linear color  { from = blue, to = red, duration = second } second == red
+      ease linear number 0 20 second     0      == 0
+      ease linear number 0 20 second     second == 20
+      ease linear color  blue red second second == red
+      ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
 -}
-ease : Easing -> Interpolation a -> Transition a -> Time -> a
-ease easing interpolate transition time = 
-    interpolate transition.from transition.to (easing (min (time/transition.duration) 1))
+ease : Easing -> Interpolation a -> a -> a -> Time -> Time -> a
+ease easing interpolate from to duration time = 
+    interpolate from to (easing (min (time/duration) 1))
 
 {-| Interpolation of two numbers -}
 number : Interpolation number
@@ -109,7 +110,6 @@ color from to v =
         float' from to v = round (number (toFloat from) (toFloat to) v)
     in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (number a1 a2 v)
 
-{-| Linear easing function, doesn't accelerate -}
 linear : Easing
 linear = id
 
