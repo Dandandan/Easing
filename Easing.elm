@@ -2,7 +2,7 @@
 
 module Easing where
 
-{-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time.
+{-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time. This can be any type of value, including numbers, points and colors.
 
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
@@ -11,23 +11,26 @@ You can find graphical examples of easing functions on [easings.net](http://easi
     linear x = x
 
     sampleAnimation : Time -> Float
-    sampleAnimation = ease easeInCubic { from = 0, to = 10, duration = second }
+    sampleAnimation = ease easeInCubic float { from = 0, to = 10, duration = second }
 
-    customAnimation : Time -> Float
-    customAnimation = ease (\x -> x ^ 2.4) { from = 0, to = 200, duration = 4 * second }
+    customAnimation : Time -> Color
+    customAnimation = ease (\x -> x ^ 2.4) color { from = blue, to = red, duration = 4 * second }
 
     tenSteps : Easing
     tenSteps = toFloat (floor (x * 10)) / 10
 
     tenStepsAnimation : Time -> Float
-    tenStepsAnimation = ease tenSteps { from = 0, to = 5, duration = second }
+    tenStepsAnimation = ease float tenSteps { from = 0, to = 5, duration = second }
 
 
-# Transition settings
+# Transition and Interpolation
 @docs Transition
 
 # Easing
 @docs ease
+
+# Interpolation functions
+@docs number, point2d, point3d, color
 
 #Easing function manipulation
 @docs invert, inAndOut, inOut, flip
@@ -38,18 +41,19 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
-      easeInQuint, easeInQuint, easeInQuint,
+      easeInQuint, easeOutQuint, easeInOutQuint,
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
+      easeInBounce, easeOutBounce, easeInOutBounce,
       easeInElastic, easeOutElastic, easeInOutElastic
 -}
 
-import Time (fps, timestamp, Time)
+import Time (Time)
+import Color (Color,toRgb, rgba)
 
-{-| Type alias for Easing functions. 
-Parameters is the current time fraction.
+{-| Type alias for Easing functions.
 
       linear : Easing
       linear time = time
@@ -63,16 +67,47 @@ type Easing = Float -> Float
 * `duration`, the duration of the transition
 
 -}
-type Transition = { from : Float, to : Float, duration : Time }
+type Transition a = { from : a, to : a, duration : Time }
+
+{-| Easing `Interpolation`.
+A interpolation of two values of type `a` using a Float value.
+
+    float : Interpolation Float
+    float from to v = from + (from - to) * v
+|-}
+type Interpolation a = a -> a -> Float -> a
 
 {-| Get the value at the current time
 
-      ease linear { from = 0, to = 20, duration = second } 0      == 0
-      ease linear { from = 0, to = 20, duration = second } second == 20
+      ease linear number { from = 0, to = 20, duration = second } 0          == 0
+      ease linear number { from = 0, to = 20, duration = second } second     == 20
+      ease linear color { from = blue, to = red, duration = second } second  == red
 -}
-ease : Easing -> Transition -> Time -> Float
-ease easing transition time = 
-    transition.from + (transition.to - transition.from) * easing (min (time/transition.duration) 1)
+ease : Easing -> Interpolation a -> Transition a -> Time -> a
+ease easing interpolate transition time = 
+    interpolate transition.from transition.to (easing (min (time/transition.duration) 1))
+
+{-| Interpolation of two numbers |-}
+number : Interpolation number
+number from to v = from + (to - from) * v
+
+{-| Interpolation of two points in 2D |-}
+point2d : Interpolation { x:number, y:number }
+point2d from to v = { x = number from.x to.x v , y = number from.y to.y v }
+
+{-| Interpolation of two points in 3D |-}
+point3d : Interpolation { x:number, y:number, z:number }
+point3d from to v = { x = number from.x to.x v , y = number from.y to.y v, z =  number from.z to.z v}
+
+{-| Interpolation of two colors |-}
+color : Interpolation Color
+color from to v = 
+    let 
+        (rgb1, rgb2)     = (toRgb from, toRgb to)
+        (r1, g1, b1, a1) = (rgb1.red, rgb1.green, rgb1.blue, rgb1.alpha)
+        (r2, g2, b2, a2) = (rgb2.red, rgb2.green, rgb2.blue, rgb2.alpha)
+        float' from to v = round (number (toFloat from) (toFloat to) v)
+    in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (number a1 a2 v)
 
 {-| Linear easing function, doesn't accelerate -}
 linear : Easing
@@ -91,7 +126,7 @@ easeInCubic : Easing
 easeInCubic time = time ^ 3
         
 easeOutCubic : Easing
-easeOutCubic = invert easeOutCubic
+easeOutCubic = invert easeInCubic
         
 easeInOutCubic : Easing
 easeInOutCubic = inOut easeInCubic easeOutCubic
