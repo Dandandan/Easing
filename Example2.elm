@@ -28,7 +28,7 @@ display e b t =
         ]
 
 main : Signal Element
-main = display <~ easing.signal ~ (fst <~ timestamp click.signal) ~ every 16 
+main = display <~ easing.signal ~ (fst <~ timestamp click.signal) ~ (fst <~ timestamp (fps 30)) 
 
 easingChoice : Element
 easingChoice =
@@ -64,4 +64,5 @@ easingChoice =
     , ("easeInElastic", easeInElastic)
     , ("easeOutElastic", easeOutElastic)
     , ("easeInOutElastic", easeInOutElastic)
+    , ("bezier", bezier 0 1 1 0)
     ]

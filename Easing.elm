@@ -46,6 +46,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 # Easing functions
 @docs Easing,
       linear,
+      bezier,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
@@ -109,6 +110,16 @@ color from to v =
 
 linear : Easing
 linear = id
+
+{-| A cubic bezier function using 4 parameters: x and y position of first control point, and x and y position of second control point
+    See http://greweb.me/glsl-transition/example/ for examples or http://cubic-bezier.com/.
+ -}
+bezier : Float -> Float -> Float -> Float -> Easing
+bezier x1 y1 x2 y2 time =
+    let casteljau ps = case ps of
+            [(x,y)]     -> y
+            xs      -> casteljau <| zipWith (\(x1',y1') (x2',y2') -> (number x1' x2' time, number y1' y2' time)) xs (tail xs)
+    in casteljau [(0,0), (x1,y1), (x2,y2), (1,1)]
 
 easeInQuad : Easing
 easeInQuad time = time ^ 2
@@ -185,7 +196,7 @@ easeInOutBack = inOut easeInBack easeOutBack
 easeInBounce : Easing
 easeInBounce = invert easeOutBounce
 
-easeretourOutBounce : Easing
+easeOutBounce : Easing
 easeOutBounce time =
     let
         a  = 7.5625
