@@ -112,7 +112,7 @@ linear : Easing
 linear = id
 
 {-| A cubic bezier function using 4 parameters: x and y position of first control point, and x and y position of second control point
-    See http://greweb.me/glsl-transition/example/ for examples or http://cubic-bezier.com/.
+    See [here](http://greweb.me/glsl-transition/example/ "glsl-transitions") for examples or [here](http://cubic-bezier.com/ "tester") to test.
  -}
 bezier : Float -> Float -> Float -> Float -> Easing
 bezier x1 y1 x2 y2 time =
