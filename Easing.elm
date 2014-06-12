@@ -13,12 +13,9 @@ You can find graphical examples of easing functions on [easings.net](http://easi
     customAnimation : Time -> Color
     customAnimation = ease (\x -> x ^ 2.4) color blue red second
 
-    tenSteps : Easing
-    tenSteps = toFloat (floor (x * 10)) / 10
-
-    {- Animate between 0 and 5 in ten steps with a duration of a second -}
-    tenStepsAnimation : Time -> Float
-    tenStepsAnimation = ease tenSteps number 0 5 second
+    {- Animate between 0 and 5 with the easeInOutQuad Easing -}
+    animation1 : Time -> Float
+    animation1 = ease easeInOutQuad number 0 5 second
 
     {- Create your own Easing functions -}
     myEasing : Easing
@@ -44,7 +41,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 @docs number, point2d, point3d, color
 
 #Easing function manipulation
-@docs invert, inAndOut, inOut, flip
+@docs invert, retour, inOut, flip
 
 # Easing functions
 @docs Easing,
@@ -77,7 +74,7 @@ A interpolation of two values of type `a` using a Float value.
 type Interpolation a = a -> a -> Float -> a
 
 {-| Ease a value.
-      Parameters are in order: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
+      Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
 
       ease linear number 0 20 second     0      == 0
       ease linear number 0 20 second     second == 20
@@ -188,7 +185,7 @@ easeInOutBack = inOut easeInBack easeOutBack
 easeInBounce : Easing
 easeInBounce = invert easeOutBounce
 
-easeOutBounce : Easing
+easeretourOutBounce : Easing
 easeOutBounce time =
     let
         a  = 7.5625
@@ -219,7 +216,7 @@ easeOutElastic = invert easeInElastic
 easeInOutElastic : Easing
 easeInOutElastic = inOut easeInElastic easeOutElastic
 
-{-| Makes an Easing function using two easing functions. The first half the first `Easing` function is used, the other half the second.
+{-| Makes an Easing function using two `Easing` functions. The first half the first `Easing` function is used, the other half the second.
 -}
 inOut : Easing -> Easing -> Easing
 inOut e1 e2 time =
@@ -228,21 +225,21 @@ inOut e1 e2 time =
     else
         0.5 + e2 ((time - 0.5) * 2) / 2
 
-{-| Inverts an easing function. A transition that starts fast and continues slow now starts slow and continues fast.
+{-| Inverts an `Easing` function. A transition that starts fast and continues slow now starts slow and continues fast.
 -}
 invert : Easing -> Easing
 invert easing time =
     1 - (easing (1 - time))
 
-{-| Flips an easing function. A transition that looks like /, now looks like \\.
+{-| Flips an `Easing` function. A transition that looks like /, now looks like \\.
 -}
 flip : Easing -> Easing
 flip easing time = easing (1 - time)
 
-{-| Makes an Easing function go in and out. A transition that looks like /, now looks like /\\.
+{-| Makes an `Easing` function go to the end first and then back to the start. A transition that looks like /, now looks like /\\.
 -}
-inAndOut : Easing -> Easing
-inAndOut easing time =
+retour : Easing -> Easing
+retour easing time =
     if time < 0.5
         then easing (time * 2)
         else (flip easing) ((time - 0.5) * 2)
