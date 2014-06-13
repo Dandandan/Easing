@@ -1,4 +1,4 @@
-{ "version": "0.6.3"
+{ "version": "0.6.5"
     , "summary": "Creating animations and transitions with easing functions."
     , "description": "Library for creating animations and transitions."
     , "license": "BSD3"

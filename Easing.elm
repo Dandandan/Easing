@@ -66,15 +66,14 @@ import Color (Color,toRgb, rgba)
 -}
 type Easing = Float -> Float
 
-{-| Easing `Interpolation`.
-A interpolation of two values of type `a` using a Float value.
+{-| An interpolation of two values using a Float value.
 
     float : Interpolation Float
     float from to v = from + (from - to) * v
 -}
 type Interpolation a = a -> a -> Float -> a
 
-{-| An `Animation` is a function returns a value given a duration and the current time. 
+{-| An `Animation` is a function that returns a value given a duration and the current time. 
 -}
 type Animation a = Time -> Time -> a
 
