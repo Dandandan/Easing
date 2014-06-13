@@ -17,36 +17,36 @@ You can find graphical examples of easing functions on [easings.net](http://easi
     animation1 : Time -> Float
     animation1 = ease easeInOutQuad number 0 5 second
 
-    {- Create your own Easing functions -}
-    myEasing : Easing
-    myEasing x = x ^ 2.4
-
     {- Create your own Interpolation functions -}
     vec : Interpolation Vec3
     vec from to v = from `add` ((to `sub` from) `scale` v)
 
     {- Use your Easing and Interpolation functions -}
     3dmovement : Time -> Vec3
-    3dmovement = ease myEasing vec (vec3 0 0 0) (vec3 10 10 10) (3 * second)
+    3dmovement = ease easeInQuad vec (vec3 0 0 0) (vec3 10 10 10) (3 * second)
 
-
-
-# Interpolation
-@docs Interpolation
+    {- Manipulate your easing functions and animations -}
+    elasticMovement : Time -> Vec3
+    elasticMovement = 
+        let animation = ease (retour easeOutElastic) vec (vec3 0 0 0) (vec3 10 10 10)
+        in  cycle animation (3 * second)
 
 # Easing
 @docs ease
+
+# Interpolation and Animation
+@docs Interpolation, Animation
 
 # Interpolation functions
 @docs number, point2d, point3d, color
 
 #Easing function manipulation
-@docs invert, retour, inOut, flip
+@docs cycle, invert, retour, inOut, flip
 
 # Easing functions
 @docs Easing,
-      linear,
       bezier,
+      linear,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
@@ -74,6 +74,10 @@ A interpolation of two values of type `a` using a Float value.
 -}
 type Interpolation a = a -> a -> Float -> a
 
+{-| An `Animation` is a function returns a value given a duration and the current time. 
+-}
+type Animation a = Time -> Time -> a
+
 {-| Ease a value.
       Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
 
@@ -82,7 +86,7 @@ type Interpolation a = a -> a -> Float -> a
       ease linear color  blue red second second == red
       ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
 -}
-ease : Easing -> Interpolation a -> a -> a -> Time -> Time -> a
+ease : Easing -> Interpolation a -> a -> a -> Animation a
 ease easing interpolate from to duration time = 
     interpolate from to (easing (min (time/duration) 1))
 
@@ -254,3 +258,12 @@ retour easing time =
     if time < 0.5
         then easing (time * 2)
         else (flip easing) ((time - 0.5) * 2)
+
+{-| Repeats an `Animation` infinitely 
+
+    rotate : Time -> Float
+    rotate = cycle (ease linear number 0 360) second
+-}
+cycle : Animation a -> Animation a
+cycle animation d t =
+    animation 1 (t / d - toFloat (floor (t/d)))

@@ -46,11 +46,12 @@ Elm.Main.make = function (_elm) {
                               switch (_v0.ctor)
                               {case "_Tuple2":
                                  return function () {
-                                      var c = A6(Easing.ease,
-                                      Easing.easeInOutQuart,
+                                      var c = A3(Easing.cycle,
+                                      A4(Easing.ease,
+                                      Easing.linear,
                                       Easing.color,
                                       Color.blue,
-                                      Color.red,
+                                      Color.red),
                                       Time.second,
                                       _v0._0 - _v1._0);
                                       var sun$ = Graphics.Collage.filled(c)(Graphics.Collage.circle(30));
@@ -137,11 +138,18 @@ Elm.Easing.make = function (_elm) {
    var Text = Elm.Text.make(_elm);
    var Time = Elm.Time.make(_elm);
    var _op = {};
+   var cycle = F3(function (animation,
+   d,
+   t) {
+      return A2(animation,
+      1,
+      t / d - Basics.toFloat(Basics.floor(t / d)));
+   });
    var flip = F2(function (easing,
    time) {
       return easing(1 - time);
    });
-   var inAndOut = F2(function (easing,
+   var retour = F2(function (easing,
    time) {
       return _U.cmp(time,
       0.5) < 0 ? easing(time * 2) : A2(flip,
@@ -308,6 +316,59 @@ Elm.Easing.make = function (_elm) {
          A3(number,a1,a2,v));
       }();
    });
+   var bezier = F5(function (x1,
+   y1,
+   x2,
+   y2,
+   time) {
+      return function () {
+         var casteljau = function (ps) {
+            return function () {
+               switch (ps.ctor)
+               {case "::": switch (ps._0.ctor)
+                    {case "_Tuple2":
+                       switch (ps._1.ctor)
+                         {case "[]": return ps._0._1;}
+                         break;}
+                    break;}
+               return casteljau(A3(List.zipWith,
+               F2(function (_v5,_v6) {
+                  return function () {
+                     switch (_v6.ctor)
+                     {case "_Tuple2":
+                        return function () {
+                             switch (_v5.ctor)
+                             {case "_Tuple2":
+                                return {ctor: "_Tuple2"
+                                       ,_0: A3(number,
+                                       _v5._0,
+                                       _v6._0,
+                                       time)
+                                       ,_1: A3(number,
+                                       _v5._1,
+                                       _v6._1,
+                                       time)};}
+                             _E.Case($moduleName,
+                             "on line 125, column 71 to 111");
+                          }();}
+                     _E.Case($moduleName,
+                     "on line 125, column 71 to 111");
+                  }();
+               }),
+               ps,
+               List.tail(ps)));
+            }();
+         };
+         return casteljau(_L.fromArray([{ctor: "_Tuple2"
+                                        ,_0: 0
+                                        ,_1: 0}
+                                       ,{ctor: "_Tuple2",_0: x1,_1: y1}
+                                       ,{ctor: "_Tuple2",_0: x2,_1: y2}
+                                       ,{ctor: "_Tuple2"
+                                        ,_0: 1
+                                        ,_1: 1}]));
+      }();
+   });
    var ease = F6(function (easing,
    interpolate,
    from,
@@ -328,6 +389,7 @@ Elm.Easing.make = function (_elm) {
                         ,point3d: point3d
                         ,color: color
                         ,linear: linear
+                        ,bezier: bezier
                         ,easeInQuad: easeInQuad
                         ,easeOutQuad: easeOutQuad
                         ,easeInOutQuad: easeInOutQuad
@@ -361,6 +423,7 @@ Elm.Easing.make = function (_elm) {
                         ,inOut: inOut
                         ,invert: invert
                         ,flip: flip
-                        ,inAndOut: inAndOut};
+                        ,retour: retour
+                        ,cycle: cycle};
    return _elm.Easing.values;
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script><noscript></noscript></body></html>

@@ -7,7 +7,7 @@ update : (Time, Time) -> (Time, (Int, Int)) -> (Int, Int) -> Form
 update (t,_) (b, (x,y)) (dx,dy) = 
     let 
         a = ease easeInOutQuart point2d {x=0, y=0} {x=200, y = -200} second (t - b)
-        c = ease easeInOutQuart color blue red second (t - b)
+        c = cycle (ease linear color blue red) second (t - b)
         sun' = circle 30 |> filled c
     in
         move (a.x, a.y) <| move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| sun'
