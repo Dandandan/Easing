@@ -1,11 +1,9 @@
 import Easing (..)
+import Easing as E
 import Graphics.Collage (..)
 import Mouse
 import Window
-
-d = { w = 500
-    , h = 500
-    }
+import Maybe (maybe)
 
 duration = 2000
 
@@ -35,10 +33,10 @@ index i xs = list Nothing head' (drop i xs)
 update (i,_) xs (dx,dy) = map (\((t, (x,y)),clicks) -> 
     let 
         currentTime = i - t
-        click' = clicks `mod` length colors
-        color = maybe orange id <| index click' colors
+        click' = clicks % length colors
+        color = maybe orange identity <| index click' colors
         playing = isPlaying animation currentTime
-        a = if playing then ease (inAndOut linear) animation currentTime else 0
+        a = if playing then ease (inAndOut E.linear) animation currentTime else 0
         sun' = filled color sun
     in
         move (toFloat x - toFloat dx / 2, toFloat dy /2 - toFloat y) <| alpha a sun') xs
