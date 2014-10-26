@@ -2,283 +2,266 @@
 
 module Easing where
 
-{-| Library for working with easing functions.
+{-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time. This can be a value of any type, including numbers, points and colors.
 
-Easing functions interpolate a value over time.
-They are mainly used to create animations (for user interfaces and games).
+You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
-You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings")
+    sampleAnimation : Time -> Float
+    sampleAnimation = ease easeInCubic float 0 10 second
 
-# Options
-@docs EaseOptions
+    {- Transition from blue to red -}
+    customAnimation : Time -> Color
+    customAnimation = ease (\x -> x ^ 2.4) color blue red second
+
+    {- Animate between 0 and 5 with the easeInOutQuad Easing -}
+    animation1 : Time -> Float
+    animation1 = ease easeInOutQuad number 0 5 second
+
+    {- Create your own Interpolation functions -}
+    vec : Interpolation Vec3
+    vec from to v = from `add` ((to `sub` from) `scale` v)
+
+    {- Use your Easing and Interpolation functions -}
+    3dmovement : Time -> Vec3
+    3dmovement = ease easeInQuad vec (vec3 0 0 0) (vec3 10 10 10) (3 * second)
+
+    {- Manipulate your easing functions and animations -}
+    elasticMovement : Time -> Vec3
+    elasticMovement = 
+        let animation = ease (retour easeOutElastic) vec (vec3 0 0 0) (vec3 10 10 10)
+        in  cycle animation (3 * second)
 
 # Easing
-@docs isPlaying
+@docs ease
+
+# Interpolation and Animation
+@docs Interpolation, Animation
+
+# Interpolation functions
+@docs number, point2d, point3d, color
+
+#Easing function manipulation
+@docs cycle, invert, retour, inOut, flip
 
 # Easing functions
 @docs Easing,
+      bezier,
       linear,
-      keyFrames,
-      easeFrom, easeTo,
       easeInQuad, easeOutQuad, easeInOutQuad,
       easeInCubic, easeOutCubic, easeInOutCubic,
       easeInQuart, easeOutQuart, easeInOutQuart,
-      easeInQuint, easeInQuint, easeInQuint,
+      easeInQuint, easeOutQuint, easeInOutQuint,
       easeInSine, easeOutSine, easeInOutSine,
       easeInExpo, easeOutExpo, easeInOutExpo,
       easeInCirc, easeOutCirc, easeInOutCirc,
       easeInBack, easeOutBack, easeInOutBack,
       easeInBounce, easeOutBounce, easeInOutBounce,
-      easeInElastic, easeOutElastic, easeInOutElastic,
-      easeInPolynomial, easeOutPolynomial, easeInOutPolynomial
-
-#Easing function manipulation
-@docs invert, inAndOut
-
+      easeInElastic, easeOutElastic, easeInOutElastic
 -}
 
-import Time (fps, timestamp, Time)
+import Time (Time)
+import Color (Color,toRgb, rgba)
 
-{-| Type alias for Easing functions. 
-Parameters are the options of the easing and the current time.
+{-| Type alias for Easing functions.
 -}
-type Easing = EaseOptions -> Time -> Float
+type Easing = Float -> Float
 
-{-| Options for easing.e
+{-| An interpolation of two values using a Float value.
 
-* <b>from</b> is value at the start
-* <b>to</b> is the value at the end
-* <b>duration</b> is the time the easing takes
-* <b>easing</b> is the easing function
-
+    float : Interpolation Float
+    float from to v = from + (from - to) * v
 -}
-type EaseOptions = 
-    { from     : Float
-    , to       : Float
-    , duration : Time
-    }
+type Interpolation a = a -> a -> Float -> a
 
-{-| Options for easing.
-Excludes an easing function, so you can use it to ease
-without the `ease` function
+{-| An `Animation` is a function that returns a value given a duration and the current time. 
 -}
+type Animation a = Time -> Time -> a
 
-{-| Linear easing function, doesn't accelerate -}
-linear : Easing
-linear = easeInPolynomial 1
+{-| Ease a value.
+      Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
 
-{-| Create an easing function from keyframes.
-
-The first argument is an easing function.
-
-Takes as second argument list of pairs with the `Time` as first element of the pair and the fraction as second element.
-
-```haskell
-{- With linear interpolation -}
-keyFrames linear [(0, 0.0), (200,0.5), (300,0.7)]
-
-{- Without linear interpolation (stop-motion) -}
-keyFrames easeFrom [(0, 0.0), (200,0.5), (300,0.7)]
-```
-
+      ease linear number 0 20 second     0      == 0
+      ease linear number 0 20 second     second == 20
+      ease linear color  blue red second second == red
+      ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
 -}
-keyFrames : Easing -> [(Time, Float)] -> Easing
-keyFrames easing fs o t = 
-    let
-        c = o.to - o.from
-    in
-        case fs of
-          [] -> o.to
-          ((i,f)::[]) -> easing { from     = o.from + c * f
-                                , to       = o.to
-                                , duration = o.duration - i
-                                } (t - i)
-          ((i,f)::(i', f')::xs) -> 
-                if | i' <= t    -> keyFrames easing ((i', f')::xs) o t
-                   | otherwise  -> easing { from     = o.from + c * f
-                                          , to       = o.from + c * f'
-                                          , duration = i' - i
-                                          } (t - i)
+ease : Easing -> Interpolation a -> a -> a -> Animation a
+ease easing interpolate from to duration time = 
+    interpolate from to (easing (min (time/duration) 1))
 
-{-|Saw-like motion -}
-easeSaw : Easing
-easeSaw o = 
+{-| Interpolation of two numbers -}
+number : Interpolation number
+number from to v = from + (to - from) * v
+
+{-| Interpolation of two points in 2D -}
+point2d : Interpolation { x:number, y:number }
+point2d from to v = { x = number from.x to.x v , y = number from.y to.y v }
+
+{-| Interpolation of two points in 3D -}
+point3d : Interpolation { x:number, y:number, z:number }
+point3d from to v = { x = number from.x to.x v , y = number from.y to.y v, z =  number from.z to.z v}
+
+{-| Interpolation of two colors -}
+color : Interpolation Color
+color from to v = 
     let 
-        k = keyFrames linear <| map (\(x,y) -> (x * o.duration, y)) 
-                                [(0,0.0), (0.2, 0.4), (0.4, 0.3), (0.6, 0.7), (0.8, 0.6)] 
-    in
-        k o
-                     
+        (rgb1, rgb2)     = (toRgb from, toRgb to)
+        (r1, g1, b1, a1) = (rgb1.red, rgb1.green, rgb1.blue, rgb1.alpha)
+        (r2, g2, b2, a2) = (rgb2.red, rgb2.green, rgb2.blue, rgb2.alpha)
+        float' from to v = round (number (toFloat from) (toFloat to) v)
+    in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (number a1 a2 v)
+
+linear : Easing
+linear = identity
+
+{-| A cubic bezier function using 4 parameters: x and y position of first control point, and x and y position of second control point.
+
+Go to [here](http://greweb.me/glsl-transition/example/ "glsl-transitions") for examples or [here](http://cubic-bezier.com/ "tester") to test.
+ -}
+bezier : Float -> Float -> Float -> Float -> Easing
+bezier x1 y1 x2 y2 time =
+    let casteljau ps = case ps of
+            [(x,y)]     -> y
+            xs      -> casteljau <| zipWith (\(x1',y1') (x2',y2') -> (number x1' x2' time, number y1' y2' time)) xs (tail xs)
+    in casteljau [(0,0), (x1,y1), (x2,y2), (1,1)]
 
 easeInQuad : Easing
-easeInQuad = easeInPolynomial 2
+easeInQuad time = time ^ 2
 
 easeOutQuad : Easing
-easeOutQuad = easeOutPolynomial 2
+easeOutQuad = invert easeInQuad
         
 easeInOutQuad : Easing 
-easeInOutQuad = easeInOutPolynomial 2
+easeInOutQuad = inOut easeInQuad easeOutQuad
 
 easeInCubic : Easing
-easeInCubic = easeInPolynomial 3
+easeInCubic time = time ^ 3
         
 easeOutCubic : Easing
-easeOutCubic = easeOutPolynomial 3
+easeOutCubic = invert easeInCubic
         
 easeInOutCubic : Easing
-easeInOutCubic = easeInOutPolynomial 3
+easeInOutCubic = inOut easeInCubic easeOutCubic
         
 easeInQuart : Easing
-easeInQuart = easeInPolynomial 4
+easeInQuart time = time ^ 4
         
 easeOutQuart : Easing
-easeOutQuart = easeOutPolynomial 4
+easeOutQuart = invert easeInQuart
 
 easeInOutQuart : Easing
-easeInOutQuart = easeOutPolynomial 4
+easeInOutQuart = inOut easeInQuart easeOutQuart
 
 easeInQuint : Easing
-easeInQuint = easeInPolynomial 5
+easeInQuint time = time ^ 5
 
 easeOutQuint : Easing
-easeOutQuint = easeOutPolynomial 5
+easeOutQuint = invert easeInQuint
 
 easeInOutQuint : Easing
-easeInOutQuint = easeInOutPolynomial 5
+easeInOutQuint = inOut easeInQuint easeOutQuint
         
 easeInSine : Easing
-easeInSine o t = let c = o.to - o.from in -c * cos(t / o.duration * (pi/2)) + c + o.from
+easeInSine = invert easeOutSine
 
 easeOutSine : Easing
-easeOutSine = invert easeInSine
+easeOutSine time = sin (time * (pi / 2))
 
 easeInOutSine : Easing
-easeInOutSine o t = easeInOut o t easeInSine easeOutSine
+easeInOutSine = inOut easeInSine easeOutSine
 
 easeInExpo : Easing
-easeInExpo o t = let c = o.to - o.from in c * 2 ^ (10 * (t / o.duration - 1)) + o.from
+easeInExpo time = 2 ^ (10 * (time - 1))
 
 easeOutExpo : Easing
 easeOutExpo = invert easeInExpo
 
 easeInOutExpo : Easing
-easeInOutExpo o t = easeInOut o t easeInExpo easeOutExpo
+easeInOutExpo = inOut easeInExpo easeOutExpo
                         
 easeInCirc : Easing
 easeInCirc = invert easeOutCirc
 
 easeOutCirc : Easing
-easeOutCirc o t= 
-    let
-        t' = t / o.duration - 1
-        c = o.to - o.from
-    in
-        c * (sqrt(1 - t' * t')) + o.from
+easeOutCirc time =  sqrt (1 - (time - 1) ^ 2)
 
 easeInOutCirc : Easing
-easeInOutCirc o t = easeInOut o t easeInCirc easeOutCirc
+easeInOutCirc = inOut easeInCirc easeOutCirc
 
 easeInBack : Easing
-easeInBack o t =
-    let 
-        t' = t / o.duration
-        s  = 1.70158
-        c = o.to - o.from
-    in
-        c * t' * t' * ((s + 1) * t' - s) + o.from
+easeInBack time = time * time * (2.70158 * time - 1.70158)
 
 easeOutBack : Easing
 easeOutBack = invert easeInBack 
 
 easeInOutBack : Easing
-easeInOutBack o t = easeInOut o t easeInBack easeOutBack
+easeInOutBack = inOut easeInBack easeOutBack
             
 easeInBounce : Easing
 easeInBounce = invert easeOutBounce
 
 easeOutBounce : Easing
-easeOutBounce o t =
+easeOutBounce time =
     let
-        c = o.to - o.from
         a  = 7.5625
-        t1 = t / o.duration
-        t2 = t1 - (1.5 / 2.75) 
-        t3 = t1 - (2.25 / 2.75) 
-        t4 = t1 - (2.65 / 2.75) 
+        t2 = time - (1.5 / 2.75) 
+        t3 = time - (2.25 / 2.75) 
+        t4 = time - (2.65 / 2.75)
     in
-        if | t1 < 1 / 2.75     -> c * (a * t1 * t1) + o.from
-           | t1 < 2 / 2.75     -> c * (a * t2 * t2 + 0.75) + o.from
-           | t1 < 2.5 / 2.75   -> c * (a * t3 * t3 + 0.9375) + o.from
-           | otherwise         -> c * (a * t4 * t4 + 0.984375) + o.from
+        if | time < 1 / 2.75     -> a * time * time
+           | time < 2 / 2.75     -> a * t2 * t2 + 0.75
+           | time < 2.5 / 2.75   -> a * t3 * t3 + 0.9375
+           | otherwise           -> a * t4 * t4 + 0.984375
 
 easeInOutBounce : Easing
-easeInOutBounce o t = easeInOut o t easeInBounce easeOutBounce
+easeInOutBounce = inOut easeInBounce easeOutBounce
 
 easeInElastic : Easing
-easeInElastic o t = 
-    let 
-        c  = o.to - o.from
+easeInElastic time = 
+    let
         s  = 0.075
         p  = 0.3
-        t' = t / o.duration - 1
+        t' = time - 1
     in
-        -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p)) * c + o.from
+        -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p))
 
 easeOutElastic : Easing
 easeOutElastic = invert easeInElastic
 
 easeInOutElastic : Easing
-easeInOutElastic o t = easeInOut o t easeInElastic easeOutElastic
+easeInOutElastic = inOut easeInElastic easeOutElastic
 
-easeInOut : EaseOptions -> Time -> Easing -> Easing -> Float
-easeInOut o t e1 e2 = let c = o.to - o.from in
-    if isFirstHalf o t then
-        e1 o (t * 2) / 2 + o.from
-    else
-        e2 o (t * 2 - o.duration) / 2 + c / 2 + o.from
-
-invert : Easing -> Easing
-invert e o t = let c = o.to - o.from in c - e o (o.duration - t)
-
-inAndOut : Easing -> Easing
-inAndOut e o t = let c = o.to - o.from in
-    if isFirstHalf o t then
-        e o (t * 2) / 2 + o.from
-    else
-        c - e o (t * 2) /2 + o.from
-
-{-| Doesn't ease, but stays at from untill the end -}
-easeFrom : Easing
-easeFrom o _ = o.from
-
-{-| Is at the to value immediately -}
-easeTo : Easing
-easeTo o _ = o.to
- 
-{-| Ease in with a polynomial function -}
-easeInPolynomial : Int -> Easing
-easeInPolynomial i o t = let c = o.to - o.from in c * (t / o.duration) ^ (toFloat i) + o.from
-
-{-| Ease out with a polynomial function -}
-easeOutPolynomial : Int -> Easing
-easeOutPolynomial i = invert (easeInPolynomial i)
-
-{-| Ease in and out with a polynomial function -}            
-easeInOutPolynomial : Int -> Easing
-easeInOutPolynomial i o t = easeInOut o t (easeInPolynomial i) (easeOutPolynomial i)
-
-{-| Get the value at the current time
+{-| Makes an Easing function using two `Easing` functions. The first half the first `Easing` function is used, the other half the second.
 -}
-ease : Easing -> EaseOptions -> Time -> Float
-ease e o t = 
-    let 
-        p = isPlaying o t
-    in 
-        if p then e o t else o.to
+inOut : Easing -> Easing -> Easing
+inOut e1 e2 time =
+    if time < 0.5 then
+        e1 (time * 2) / 2
+    else
+        0.5 + e2 ((time - 0.5) * 2) / 2
 
-{-| The easing is still playing at the current time -}
-isPlaying : EaseOptions -> Float -> Bool
-isPlaying o t = t < o.duration
+{-| Inverts an `Easing` function. A transition that starts fast and continues slow now starts slow and continues fast.
+-}
+invert : Easing -> Easing
+invert easing time = 1 - easing (1 - time)
 
-isFirstHalf : EaseOptions -> Float -> Bool
-isFirstHalf o t = t < o.duration / 2
+{-| Flips an `Easing` function. A transition that looks like /, now looks like \\.
+-}
+flip : Easing -> Easing
+flip easing time = easing (1 - time)
+
+{-| Makes an `Easing` function go to the end first and then back to the start. A transition that looks like /, now looks like /\\.
+-}
+retour : Easing -> Easing
+retour easing time =
+    if time < 0.5
+        then easing (time * 2)
+        else (flip easing) ((time - 0.5) * 2)
+
+{-| Repeats an `Animation` infinitely 
+
+    rotate : Time -> Float
+    rotate = cycle (ease linear number 0 360) second
+-}
+cycle : Animation a -> Animation a
+cycle animation d t = animation 1 (t / d - toFloat (floor (t / d)))
