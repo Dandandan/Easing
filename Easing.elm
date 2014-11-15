@@ -27,7 +27,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 
     {- Manipulate your easing functions and animations -}
     elasticMovement : Time -> Vec3
-    elasticMovement = 
+    elasticMovement =
         let animation = ease (retour easeOutElastic) vec (vec3 0 0 0) (vec3 10 10 10)
         in  cycle animation (3 * second)
 
@@ -38,7 +38,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 @docs Interpolation, Animation
 
 # Interpolation functions
-@docs number, point2d, point3d, color
+@docs float, point2d, point3d, color, pair
 
 #Easing function manipulation
 @docs cycle, invert, retour, inOut, flip
@@ -73,46 +73,60 @@ type Easing = Float -> Float
 -}
 type Interpolation a = a -> a -> Float -> a
 
-{-| An `Animation` is a function that returns a value given a duration and the current time. 
+{-| An `Animation` is a function that returns a value given a duration and the current time.
 -}
 type Animation a = Time -> Time -> a
 
 {-| Ease a value.
       Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
 
-      ease linear number 0 20 second     0      == 0
-      ease linear number 0 20 second     second == 20
+      ease linear float 0 20 second     0      == 0
+      ease linear float 0 20 second     second == 20
       ease linear color  blue red second second == red
       ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
 -}
 ease : Easing -> Interpolation a -> a -> a -> Animation a
-ease easing interpolate from to duration time = 
+ease easing interpolate from to duration time =
     interpolate from to (easing (min (time/duration) 1))
 
-{-| Interpolation of two numbers -}
-number : Interpolation number
-number from to v = from + (to - from) * v
+{-| Interpolation of two Floats -}
+float : Interpolation Float
+float from to v =
+    from + (to - from) * v
 
 {-| Interpolation of two points in 2D -}
-point2d : Interpolation { x:number, y:number }
-point2d from to v = { x = number from.x to.x v , y = number from.y to.y v }
+point2d : Interpolation { x : Float, y : Float }
+point2d from to v =
+    { x = float from.x to.x v
+    , y = float from.y to.y v
+    }
 
 {-| Interpolation of two points in 3D -}
-point3d : Interpolation { x:number, y:number, z:number }
-point3d from to v = { x = number from.x to.x v , y = number from.y to.y v, z =  number from.z to.z v}
+point3d : Interpolation { x : Float, y : Float, z : Float }
+point3d from to v =
+    { x = float from.x to.x v
+    , y = float from.y to.y v
+    , z =  float from.z to.z v
+    }
 
 {-| Interpolation of two colors -}
 color : Interpolation Color
-color from to v = 
-    let 
+color from to v =
+    let
         (rgb1, rgb2)     = (toRgb from, toRgb to)
         (r1, g1, b1, a1) = (rgb1.red, rgb1.green, rgb1.blue, rgb1.alpha)
         (r2, g2, b2, a2) = (rgb2.red, rgb2.green, rgb2.blue, rgb2.alpha)
-        float' from to v = round (number (toFloat from) (toFloat to) v)
-    in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (number a1 a2 v)
+        float' from to v = round (float (toFloat from) (toFloat to) v)
+    in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (float a1 a2 v)
+
+{-| Interpolation of a pair -}
+pair : Interpolation a -> Interpolation (a, a)
+pair interpolate (a0, b0) (a1, b1) v =
+    (interpolate a0 a1 v, interpolate b0 b1 v)
 
 linear : Easing
-linear = identity
+linear =
+    identity
 
 {-| A cubic bezier function using 4 parameters: x and y position of first control point, and x and y position of second control point.
 
@@ -120,92 +134,120 @@ Go to [here](http://greweb.me/glsl-transition/example/ "glsl-transitions") for e
  -}
 bezier : Float -> Float -> Float -> Float -> Easing
 bezier x1 y1 x2 y2 time =
-    let casteljau ps = case ps of
-            [(x,y)]     -> y
-            xs      -> casteljau <| zipWith (\(x1',y1') (x2',y2') -> (number x1' x2' time, number y1' y2' time)) xs (tail xs)
-    in casteljau [(0,0), (x1,y1), (x2,y2), (1,1)]
+    let casteljau ps =
+        case ps of
+            [(x,y)] -> y
+            xs      ->
+                zipWith (\x y -> pair float x y time) xs (tail xs)
+                |> casteljau
+    in casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
 
 easeInQuad : Easing
-easeInQuad time = time ^ 2
+easeInQuad time =
+    time ^ 2
 
 easeOutQuad : Easing
-easeOutQuad = invert easeInQuad
-        
-easeInOutQuad : Easing 
-easeInOutQuad = inOut easeInQuad easeOutQuad
+easeOutQuad =
+    invert easeInQuad
+
+easeInOutQuad : Easing
+easeInOutQuad =
+    inOut easeInQuad easeOutQuad
 
 easeInCubic : Easing
-easeInCubic time = time ^ 3
-        
+easeInCubic time =
+    time ^ 3
+
 easeOutCubic : Easing
-easeOutCubic = invert easeInCubic
-        
+easeOutCubic =
+    invert easeInCubic
+
 easeInOutCubic : Easing
-easeInOutCubic = inOut easeInCubic easeOutCubic
-        
+easeInOutCubic =
+    inOut easeInCubic easeOutCubic
+
 easeInQuart : Easing
-easeInQuart time = time ^ 4
-        
+easeInQuart time =
+    time ^ 4
+
 easeOutQuart : Easing
-easeOutQuart = invert easeInQuart
+easeOutQuart =
+    invert easeInQuart
 
 easeInOutQuart : Easing
-easeInOutQuart = inOut easeInQuart easeOutQuart
+easeInOutQuart =
+    inOut easeInQuart easeOutQuart
 
 easeInQuint : Easing
-easeInQuint time = time ^ 5
+easeInQuint time =
+    time ^ 5
 
 easeOutQuint : Easing
-easeOutQuint = invert easeInQuint
+easeOutQuint =
+    invert easeInQuint
 
 easeInOutQuint : Easing
-easeInOutQuint = inOut easeInQuint easeOutQuint
-        
+easeInOutQuint =
+    inOut easeInQuint easeOutQuint
+
 easeInSine : Easing
-easeInSine = invert easeOutSine
+easeInSine =
+    invert easeOutSine
 
 easeOutSine : Easing
-easeOutSine time = sin (time * (pi / 2))
+easeOutSine time =
+    sin (time * (pi / 2))
 
 easeInOutSine : Easing
-easeInOutSine = inOut easeInSine easeOutSine
+easeInOutSine =
+    inOut easeInSine easeOutSine
 
 easeInExpo : Easing
-easeInExpo time = 2 ^ (10 * (time - 1))
+easeInExpo time =
+    2 ^ (10 * (time - 1))
 
 easeOutExpo : Easing
-easeOutExpo = invert easeInExpo
+easeOutExpo =
+    invert easeInExpo
 
 easeInOutExpo : Easing
-easeInOutExpo = inOut easeInExpo easeOutExpo
-                        
+easeInOutExpo =
+    inOut easeInExpo easeOutExpo
+
 easeInCirc : Easing
-easeInCirc = invert easeOutCirc
+easeInCirc =
+    invert easeOutCirc
 
 easeOutCirc : Easing
-easeOutCirc time =  sqrt (1 - (time - 1) ^ 2)
+easeOutCirc time =
+    sqrt (1 - (time - 1) ^ 2)
 
 easeInOutCirc : Easing
-easeInOutCirc = inOut easeInCirc easeOutCirc
+easeInOutCirc =
+    inOut easeInCirc easeOutCirc
 
 easeInBack : Easing
-easeInBack time = time * time * (2.70158 * time - 1.70158)
+easeInBack time =
+    time * time * (2.70158 * time - 1.70158)
 
 easeOutBack : Easing
-easeOutBack = invert easeInBack 
+easeOutBack =
+    invert easeInBack
 
 easeInOutBack : Easing
-easeInOutBack = inOut easeInBack easeOutBack
-            
+easeInOutBack =
+    inOut easeInBack easeOutBack
+
 easeInBounce : Easing
-easeInBounce = invert easeOutBounce
+easeInBounce =
+    invert easeOutBounce
 
 easeOutBounce : Easing
 easeOutBounce time =
     let
         a  = 7.5625
-        t2 = time - (1.5 / 2.75) 
-        t3 = time - (2.25 / 2.75) 
+        t2 = time - (1.5 / 2.75)
+        t3 = time - (2.25 / 2.75)
         t4 = time - (2.65 / 2.75)
     in
         if | time < 1 / 2.75     -> a * time * time
@@ -217,7 +259,7 @@ easeInOutBounce : Easing
 easeInOutBounce = inOut easeInBounce easeOutBounce
 
 easeInElastic : Easing
-easeInElastic time = 
+easeInElastic time =
     let
         s  = 0.075
         p  = 0.3
@@ -243,12 +285,14 @@ inOut e1 e2 time =
 {-| Inverts an `Easing` function. A transition that starts fast and continues slow now starts slow and continues fast.
 -}
 invert : Easing -> Easing
-invert easing time = 1 - easing (1 - time)
+invert easing time =
+    1 - easing (1 - time)
 
 {-| Flips an `Easing` function. A transition that looks like /, now looks like \\.
 -}
 flip : Easing -> Easing
-flip easing time = easing (1 - time)
+flip easing time =
+    easing (1 - time)
 
 {-| Makes an `Easing` function go to the end first and then back to the start. A transition that looks like /, now looks like /\\.
 -}
@@ -258,10 +302,11 @@ retour easing time =
         then easing (time * 2)
         else (flip easing) ((time - 0.5) * 2)
 
-{-| Repeats an `Animation` infinitely 
+{-| Repeats an `Animation` infinitely
 
     rotate : Time -> Float
-    rotate = cycle (ease linear number 0 360) second
+    rotate = cycle (ease linear float 0 360) second
 -}
 cycle : Animation a -> Animation a
-cycle animation d t = animation 1 (t / d - toFloat (floor (t / d)))
+cycle animation d t =
+    animation 1 (t / d - toFloat (floor (t / d)))
