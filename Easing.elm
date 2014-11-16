@@ -85,7 +85,7 @@ type Animation a = Time -> Time -> a
       ease linear color  blue red second second == red
       ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
 -}
-ease : Easing -> Interpolation a -> a -> a -> Animation a
+ease : Easing -> Interpolation a -> a -> a -> Time -> Time -> a
 ease easing interpolate from to duration time =
     interpolate from to (easing (min (time/duration) 1))
 
