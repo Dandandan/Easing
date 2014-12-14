@@ -61,21 +61,22 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 
 import Time (Time)
 import Color (Color,toRgb, rgba)
+import List
 
 {-| Type alias for Easing functions.
 -}
-type Easing = Float -> Float
+type alias Easing = Float -> Float
 
 {-| An interpolation of two values using a Float value.
 
     float : Interpolation Float
     float from to v = from + (from - to) * v
 -}
-type Interpolation a = a -> a -> Float -> a
+type alias Interpolation a = a -> a -> Float -> a
 
 {-| An `Animation` is a function that returns a value given a duration and the current time.
 -}
-type Animation a = Time -> Time -> a
+type alias Animation a = Time -> Time -> a
 
 {-| Ease a value.
       Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
@@ -138,7 +139,7 @@ bezier x1 y1 x2 y2 time =
         case ps of
             [(x,y)] -> y
             xs      ->
-                zipWith (\x y -> pair float x y time) xs (tail xs)
+                List.map2 (\x y -> pair float x y time) xs (List.tail xs)
                 |> casteljau
     in casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
 
