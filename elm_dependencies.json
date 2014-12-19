@@ -1,9 +1,0 @@
-{ "version": "0.8.1"
-, "summary": "Creating animations and transitions with easing functions."
-, "description": "Library for creating animations and transitions."
-, "license": "BSD3"
-, "repository": "https://github.com/Dandandan/Easing.git"
-, "exposed-modules": [ "Easing" ]
-, "elm-version": "0.13"
-, "dependencies": {}
-}
