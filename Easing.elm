@@ -1,6 +1,23 @@
 {- Daniël Heres 2014 -}
 
-module Easing where
+module Easing (ease,
+ Interpolation, Animation,
+ float, point2d, point3d, color, pair,
+ cycle, invert, retour, inOut, flip,
+ Easing,
+ bezier,
+ linear,
+ easeInQuad, easeOutQuad, easeInOutQuad,
+ easeInCubic, easeOutCubic, easeInOutCubic,
+ easeInQuart, easeOutQuart, easeInOutQuart,
+ easeInQuint, easeOutQuint, easeInOutQuint,
+ easeInSine, easeOutSine, easeInOutSine,
+ easeInExpo, easeOutExpo, easeInOutExpo,
+ easeInCirc, easeOutCirc, easeInOutCirc,
+ easeInBack, easeOutBack, easeInOutBack,
+ easeInBounce, easeOutBounce, easeInOutBounce,
+ easeInElastic, easeOutElastic, easeInOutElastic
+ ) where
 
 {-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time. This can be a value of any type, including numbers, points and colors.
 

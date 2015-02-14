@@ -1,3 +1,6 @@
+### 1.0.2
+* Export functions
+
 ### 1.0.0
 * Updated to 0.14
 
