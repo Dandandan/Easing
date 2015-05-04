@@ -76,9 +76,10 @@ You can find graphical examples of easing functions on [easings.net](http://easi
       easeInElastic, easeOutElastic, easeInOutElastic
 -}
 
-import Time (Time)
-import Color (Color,toRgb, rgba)
+import Time exposing (Time)
+import Color exposing (Color,toRgb, rgba)
 import List
+import Debug
 
 {-| Type alias for Easing functions.
 -}
@@ -156,9 +157,13 @@ bezier x1 y1 x2 y2 time =
         case ps of
             [(x,y)] -> y
             xs      ->
-                List.map2 (\x y -> pair float x y time) xs (List.tail xs)
+                List.map2 (\x y -> pair float x y time) xs (truncatedTail xs)
                 |> casteljau
     in casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
+
+truncatedTail xs = case xs of
+  []    -> []
+  _::xs' -> xs'
 
 easeInQuad : Easing
 easeInQuad time =
