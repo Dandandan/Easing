@@ -2,7 +2,7 @@
 
 module Easing (ease,
  Interpolation, Animation,
- float, point2d, point3d, color, pair,
+ float, int, point2d, point3d, color, pair,
  cycle, invert, retour, inOut, flip,
  Easing,
  bezier,
@@ -55,7 +55,7 @@ You can find graphical examples of easing functions on [easings.net](http://easi
 @docs Interpolation, Animation
 
 # Interpolation functions
-@docs float, point2d, point3d, color, pair
+@docs float, int, point2d, point3d, color, pair
 
 #Easing function manipulation
 @docs cycle, invert, retour, inOut, flip
@@ -113,6 +113,11 @@ ease easing interpolate from to duration time =
 float : Interpolation Float
 float from to v =
     from + (to - from) * v
+
+{-| Interpolation of two Ints -}
+int : Interpolation Int
+int from to v =
+    from + (round ((toFloat (to - from)) * v))
 
 {-| Interpolation of two points in 2D -}
 point2d : Interpolation { x : Float, y : Float }
