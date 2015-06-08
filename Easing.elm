@@ -136,7 +136,7 @@ color from to v =
         (rgb1, rgb2)     = (toRgb from, toRgb to)
         (r1, g1, b1, a1) = (rgb1.red, rgb1.green, rgb1.blue, rgb1.alpha)
         (r2, g2, b2, a2) = (rgb2.red, rgb2.green, rgb2.blue, rgb2.alpha)
-        float' from to v = round (float (toFloat from) (toFloat to) v)
+        float' from to v = round (float (toFloat from) (toFloat to) v) |> max 0 |> min 255
     in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (float a1 a2 v)
 
 {-| Interpolation of a pair -}
