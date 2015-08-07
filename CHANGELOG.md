@@ -1,3 +1,6 @@
+### 1.04
+* Documentation and formatting changes
+
 ### 1.0.2
 * Export functions
 

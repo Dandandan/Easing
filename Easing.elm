@@ -1,5 +1,3 @@
-{- Daniël Heres 2014 -}
-
 module Easing (ease,
  Interpolation, Animation,
  float, point2d, point3d, color, pair,
@@ -19,34 +17,40 @@ module Easing (ease,
  easeInElastic, easeOutElastic, easeInOutElastic
  ) where
 
-{-| Library for working creating transitions with easing functions. Easing functions interpolate a value over time. This can be a value of any type, including numbers, points and colors.
+{-| `Easing` is a library for working creating simple animations with easing functions. Easing functions interpolate a value over time. This can be a value of any type, including numbers, points and colors.
 
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
-    sampleAnimation : Time -> Float
-    sampleAnimation = ease easeInCubic float 0 10 second
+```
+sampleAnimation : Time -> Float
+sampleAnimation currentTime =
+    ease easeInCubic float 0 10 second currentTime
 
-    {- Transition from blue to red -}
-    customAnimation : Time -> Color
-    customAnimation = ease (\x -> x ^ 2.4) color blue red second
+{- Transition from blue to red using custom `Easing` function -}
+customAnimation : Time -> Color
+customAnimation currentTime =
+    ease (\x -> x ^ 2.4) color blue red second currentTime
 
-    {- Animate between 0 and 5 with the easeInOutQuad Easing -}
-    animation1 : Time -> Float
-    animation1 = ease easeInOutQuad number 0 5 second
+{- Animate between 0 and 5 with the easeInOutQuad Easing -}
+animation1 : Time -> Float
+animation1 currentTime =
+    ease easeInOutQuad number 0 5 second currentTime
 
-    {- Create your own Interpolation functions -}
-    vec : Interpolation Vec3
-    vec from to v = from `add` ((to `sub` from) `scale` v)
+{- Animation with bezier curve -}
+bezierAnimation : Time -> Float
+bezierAnimation currentTime =
+    ease (bezier 0.65 0.06 0.99 0) number 0 5 second currentTime
 
-    {- Use your Easing and Interpolation functions -}
-    3dmovement : Time -> Vec3
-    3dmovement = ease easeInQuad vec (vec3 0 0 0) (vec3 10 10 10) (3 * second)
+{- Create your own Interpolation functions -}
+vec : Interpolation Vec3
+vec from to value =
+    from `add` ((to `sub` from) `scale` value)
 
-    {- Manipulate your easing functions and animations -}
-    elasticMovement : Time -> Vec3
-    elasticMovement =
-        let animation = ease (retour easeOutElastic) vec (vec3 0 0 0) (vec3 10 10 10)
-        in  cycle animation (3 * second)
+{- Use your Easing and Interpolation functions -}
+3dmovement : Time -> Vec3
+3dmovement currentTime =
+    ease easeInQuad vec (vec3 0 0 0) (vec3 10 10 10) (3 * second) currentTime
+```
 
 # Easing
 @docs ease
@@ -97,17 +101,18 @@ type alias Interpolation a = a -> a -> Float -> a
 -}
 type alias Animation a = Time -> Time -> a
 
-{-| Ease a value.
-      Parameters are: an easing function, an interpolation function, a `from` value, a `to` value, the duration of the transition and the current (normalized) time.
+{-| Compute an animation using the parameters.
+      Parameters are: an `Easing` function, an `Interpolation` function, a `from` value, a `to` value, the duration of the transition and the elapsed time.
 
-      ease linear float 0 20 second     0      == 0
-      ease linear float 0 20 second     second == 20
-      ease linear color  blue red second second == red
-      ease easeInOutQuad point2d {x=0,y=0} {x=1,y=1} second second == {x=1,y=1}
+      ease linear float 0 20 second 0 == 0
+
+      ease linear float 0 20 second second == 20
+
+      ease linear color blue red second second == red
 -}
 ease : Easing -> Interpolation a -> a -> a -> Time -> Time -> a
-ease easing interpolate from to duration time =
-    interpolate from to (easing (min (time/duration) 1))
+ease easing interpolation from to duration time =
+    interpolation from to (easing (min (time / duration) 1))
 
 {-| Interpolation of two Floats -}
 float : Interpolation Float
@@ -137,7 +142,8 @@ color from to v =
         (r1, g1, b1, a1) = (rgb1.red, rgb1.green, rgb1.blue, rgb1.alpha)
         (r2, g2, b2, a2) = (rgb2.red, rgb2.green, rgb2.blue, rgb2.alpha)
         float' from to v = round (float (toFloat from) (toFloat to) v)
-    in rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (float a1 a2 v)
+    in
+        rgba (float' r1 r2 v) (float' g1 g2 v) (float' b1 b2 v) (float a1 a2 v)
 
 {-| Interpolation of a pair -}
 pair : Interpolation a -> Interpolation (a, a)
@@ -150,17 +156,19 @@ linear =
 
 {-| A cubic bezier function using 4 parameters: x and y position of first control point, and x and y position of second control point.
 
-Go to [here](http://greweb.me/glsl-transition/example/ "glsl-transitions") for examples or [here](http://cubic-bezier.com/ "tester") to test.
+See [here](http://greweb.me/glsl-transition/example/ "glsl-transitions") for examples or [here](http://cubic-bezier.com/ "tester") to test.
  -}
 bezier : Float -> Float -> Float -> Float -> Easing
 bezier x1 y1 x2 y2 time =
     let casteljau ps =
         case ps of
-            [(x,y)] -> y
-            xs      ->
+            [(x,y)] ->
+                y
+            xs ->
                 List.map2 (\x y -> pair float x y time) xs (Maybe.withDefault [] (List.tail xs))
-                |> casteljau
-    in casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
+                  |> casteljau
+    in
+        casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
 
 easeInQuad : Easing
 easeInQuad time =
@@ -270,10 +278,14 @@ easeOutBounce time =
         t3 = time - (2.25 / 2.75)
         t4 = time - (2.65 / 2.75)
     in
-        if | time < 1 / 2.75     -> a * time * time
-           | time < 2 / 2.75     -> a * t2 * t2 + 0.75
-           | time < 2.5 / 2.75   -> a * t3 * t3 + 0.9375
-           | otherwise           -> a * t4 * t4 + 0.984375
+        if | time < 1 / 2.75 ->
+                a * time * time
+           | time < 2 / 2.75 ->
+                a * t2 * t2 + 0.75
+           | time < 2.5 / 2.75 ->
+                a * t3 * t3 + 0.9375
+           | otherwise ->
+                a * t4 * t4 + 0.984375
 
 easeInOutBounce : Easing
 easeInOutBounce = inOut easeInBounce easeOutBounce
@@ -288,10 +300,12 @@ easeInElastic time =
         -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p))
 
 easeOutElastic : Easing
-easeOutElastic = invert easeInElastic
+easeOutElastic =
+    invert easeInElastic
 
 easeInOutElastic : Easing
-easeInOutElastic = inOut easeInElastic easeOutElastic
+easeInOutElastic =
+    inOut easeInElastic easeOutElastic
 
 {-| Makes an Easing function using two `Easing` functions. The first half the first `Easing` function is used, the other half the second.
 -}
@@ -318,9 +332,11 @@ flip easing time =
 -}
 retour : Easing -> Easing
 retour easing time =
-    if time < 0.5
-        then easing (time * 2)
-        else (flip easing) ((time - 0.5) * 2)
+    if time < 0.5 then
+        easing (time * 2)
+    else
+        (time - 0.5) * 2
+          |> flip easing
 
 {-| Repeats an `Animation` infinitely
 
