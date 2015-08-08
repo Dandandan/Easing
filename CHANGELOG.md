@@ -1,5 +1,5 @@
 ### 1.1.0
-* Added `friction`
+* Added `friction`, `gravity`
 
 ### 1.04
 * Documentation and formatting changes

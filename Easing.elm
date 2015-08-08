@@ -154,7 +154,8 @@ pair interpolate (a0, b0) (a1, b1) v =
     (interpolate a0 a1 v, interpolate b0 b1 v)
 
 {-| Animation based on friction with a drag
-    For good results, use a number between 0.001 and 0.01
+    For good results, use a number between 0.001 and 0.01, the lower the drag
+    value the faster it slows down.
     Note: this Easing function stops when the velocity is (almost) 0, that means
           that this function doesn't necessarily end at 1. You probably want to
           implement

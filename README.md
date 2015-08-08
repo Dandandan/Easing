@@ -6,7 +6,7 @@ Easing (animation in Elm)
 
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
-```
+```elm
 sampleAnimation : Time -> Float
 sampleAnimation currentTime =
     ease easeInCubic float 0 10 second currentTime
