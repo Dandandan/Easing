@@ -22,7 +22,7 @@ module Easing (ease,
 
 You can find graphical examples of easing functions on [easings.net](http://easings.net/ "Easings").
 
-```
+```elm
 sampleAnimation : Time -> Float
 sampleAnimation currentTime =
     ease easeInCubic float 0 10 second currentTime
@@ -166,13 +166,14 @@ friction drag time =
     in
         (drag ^ time) / dragLog - 1 / dragLog
 
-{- Animation based on (gravitational) acceleration
+{-| Animation based on (gravitational) acceleration
    First argument is initial velocity, the second argument acceleration
 -}
 gravity : Float -> Float -> Easing
 gravity velocity acceleration time =
     time * velocity + 0.5 * acceleration * time * time
 
+{-|-}
 linear : Easing
 linear =
     identity
@@ -193,106 +194,132 @@ bezier x1 y1 x2 y2 time =
     in
         casteljau [(0, 0), (x1, y1), (x2, y2), (1, 1)]
 
+{-|-}
 easeInQuad : Easing
 easeInQuad time =
     time ^ 2
 
+{-|-}
 easeOutQuad : Easing
 easeOutQuad =
     invert easeInQuad
 
+{-|-}
 easeInOutQuad : Easing
 easeInOutQuad =
     inOut easeInQuad easeOutQuad
 
+{-|-}
 easeInCubic : Easing
 easeInCubic time =
     time ^ 3
 
+{-|-}
 easeOutCubic : Easing
 easeOutCubic =
     invert easeInCubic
 
+{-|-}
 easeInOutCubic : Easing
 easeInOutCubic =
     inOut easeInCubic easeOutCubic
 
+{-|-}
 easeInQuart : Easing
 easeInQuart time =
     time ^ 4
 
+{-|-}
 easeOutQuart : Easing
 easeOutQuart =
     invert easeInQuart
 
+{-|-}
 easeInOutQuart : Easing
 easeInOutQuart =
     inOut easeInQuart easeOutQuart
 
+{-|-}
 easeInQuint : Easing
 easeInQuint time =
     time ^ 5
 
+{-|-}
 easeOutQuint : Easing
 easeOutQuint =
     invert easeInQuint
 
+{-|-}
 easeInOutQuint : Easing
 easeInOutQuint =
     inOut easeInQuint easeOutQuint
 
+{-|-}
 easeInSine : Easing
 easeInSine =
     invert easeOutSine
 
+{-|-}
 easeOutSine : Easing
 easeOutSine time =
     sin (time * (pi / 2))
 
+{-|-}
 easeInOutSine : Easing
 easeInOutSine =
     inOut easeInSine easeOutSine
 
+{-|-}
 easeInExpo : Easing
 easeInExpo time =
     2 ^ (10 * (time - 1))
 
+{-|-}
 easeOutExpo : Easing
 easeOutExpo =
     invert easeInExpo
 
+{-|-}
 easeInOutExpo : Easing
 easeInOutExpo =
     inOut easeInExpo easeOutExpo
 
+{-|-}
 easeInCirc : Easing
 easeInCirc =
     invert easeOutCirc
 
+{-|-}
 easeOutCirc : Easing
 easeOutCirc time =
     sqrt (1 - (time - 1) ^ 2)
 
+{-|-}
 easeInOutCirc : Easing
 easeInOutCirc =
     inOut easeInCirc easeOutCirc
 
+{-|-}
 easeInBack : Easing
 easeInBack time =
     time * time * (2.70158 * time - 1.70158)
 
+{-|-}
 easeOutBack : Easing
 easeOutBack =
     invert easeInBack
 
+{-|-}
 easeInOutBack : Easing
 easeInOutBack =
     inOut easeInBack easeOutBack
 
+{-|-}
 easeInBounce : Easing
 easeInBounce =
     invert easeOutBounce
 
+{-|-}
 easeOutBounce : Easing
 easeOutBounce time =
     let
@@ -310,9 +337,11 @@ easeOutBounce time =
            | otherwise ->
                 a * t4 * t4 + 0.984375
 
+{-|-}
 easeInOutBounce : Easing
 easeInOutBounce = inOut easeInBounce easeOutBounce
 
+{-|-}
 easeInElastic : Easing
 easeInElastic time =
     let
@@ -322,10 +351,12 @@ easeInElastic time =
     in
         -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p))
 
+{-|-}
 easeOutElastic : Easing
 easeOutElastic =
     invert easeInElastic
 
+{-|-}
 easeInOutElastic : Easing
 easeInOutElastic =
     inOut easeInElastic easeOutElastic
