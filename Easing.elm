@@ -48,8 +48,8 @@ vec from to value =
     from `add` ((to `sub` from) `scale` value)
 
 {- Use your Easing and Interpolation functions -}
-3dmovement : Time -> Vec3
-3dmovement currentTime =
+vec3movement : Time -> Vec3
+vec3movement currentTime =
     ease easeInQuad vec (vec3 0 0 0) (vec3 10 10 10) (3 * second) currentTime
 ```
 
