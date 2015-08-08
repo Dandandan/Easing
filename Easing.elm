@@ -4,6 +4,7 @@ module Easing (ease,
  cycle, invert, retour, inOut, flip,
  Easing,
  bezier,
+ friction,
  linear,
  easeInQuad, easeOutQuad, easeInOutQuad,
  easeInCubic, easeOutCubic, easeInOutCubic,
@@ -64,6 +65,9 @@ vec from to value =
 #Easing function manipulation
 @docs cycle, invert, retour, inOut, flip
 
+#Physics based Animation
+@docs friction
+
 # Easing functions
 @docs Easing,
       bezier,
@@ -81,10 +85,9 @@ vec from to value =
 -}
 
 import Time exposing (Time)
-import Color exposing (Color,toRgb, rgba)
+import Color exposing (Color, toRgb, rgba)
 import List
 import Maybe
-import Debug
 
 {-| Type alias for Easing functions.
 -}
@@ -149,6 +152,18 @@ color from to v =
 pair : Interpolation a -> Interpolation (a, a)
 pair interpolate (a0, b0) (a1, b1) v =
     (interpolate a0 a1 v, interpolate b0 b1 v)
+
+{-| Animation based on friction with a drag
+    For good results, use a number between 0.001 and 0.01
+    Note: this Easing function stops when the velocity is (almost) 0, that means
+          that this function doesn't necessarily end at 1
+-}
+friction : Float -> Easing
+friction drag time =
+    let dragLog = logBase e drag
+    in
+        (drag ^ time) / dragLog - 1 / dragLog
+
 
 linear : Easing
 linear =

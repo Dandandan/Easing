@@ -1,3 +1,6 @@
+### 1.1.0
+* Added `friction`
+
 ### 1.04
 * Documentation and formatting changes
 
