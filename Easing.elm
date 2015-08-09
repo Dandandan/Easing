@@ -4,7 +4,6 @@ module Easing (ease,
  cycle, invert, retour, inOut, flip,
  Easing,
  bezier,
- friction, gravity,
  linear,
  easeInQuad, easeOutQuad, easeInOutQuad,
  easeInCubic, easeOutCubic, easeInOutCubic,
@@ -64,9 +63,6 @@ vec3movement currentTime =
 
 #Easing function manipulation
 @docs cycle, invert, retour, inOut, flip
-
-#Physics based Animation
-@docs friction, gravity
 
 # Easing functions
 @docs Easing,
@@ -152,26 +148,6 @@ color from to v =
 pair : Interpolation a -> Interpolation (a, a)
 pair interpolate (a0, b0) (a1, b1) v =
     (interpolate a0 a1 v, interpolate b0 b1 v)
-
-{-| Animation based on friction with a drag
-    For good results, use a number between 0.001 and 0.01, the lower the drag
-    value the faster it slows down.
-    Note: this Easing function stops when the velocity is (almost) 0, that means
-          that this function doesn't necessarily end at 1. You probably want to
-          implement
--}
-friction : Float -> Easing
-friction drag time =
-    let dragLog = logBase e drag
-    in
-        (drag ^ time) / dragLog - 1 / dragLog
-
-{-| Animation based on (gravitational) acceleration
-   First argument is initial velocity, the second argument acceleration
--}
-gravity : Float -> Float -> Easing
-gravity velocity acceleration time =
-    time * velocity + 0.5 * acceleration * time * time
 
 {-|-}
 linear : Easing
