@@ -304,14 +304,14 @@ easeOutBounce time =
         t3 = time - (2.25 / 2.75)
         t4 = time - (2.65 / 2.75)
     in
-        if | time < 1 / 2.75 ->
-                a * time * time
-           | time < 2 / 2.75 ->
-                a * t2 * t2 + 0.75
-           | time < 2.5 / 2.75 ->
-                a * t3 * t3 + 0.9375
-           | otherwise ->
-                a * t4 * t4 + 0.984375
+        if time < 1 / 2.75 then
+            a * time * time
+        else if time < 2 / 2.75 then
+            a * t2 * t2 + 0.75
+        else if time < 2.5 / 2.75 then
+            a * t3 * t3 + 0.9375
+        else
+            a * t4 * t4 + 0.984375
 
 {-|-}
 easeInOutBounce : Easing
