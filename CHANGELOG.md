@@ -1,3 +1,6 @@
+### 2.0.1
+* Updated to 0.16
+
 ### 2.0.0
 * Remove `friction`, `gravity`
 
