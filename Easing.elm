@@ -248,7 +248,10 @@ easeInOutSine =
 {-|-}
 easeInExpo : Easing
 easeInExpo time =
-    2 ^ (10 * (time - 1))
+    if time == 0.0 then
+        0.0
+    else
+        2 ^ (10 * (time - 1))
 
 {-|-}
 easeOutExpo : Easing
@@ -302,7 +305,7 @@ easeOutBounce time =
         a  = 7.5625
         t2 = time - (1.5 / 2.75)
         t3 = time - (2.25 / 2.75)
-        t4 = time - (2.65 / 2.75)
+        t4 = time - (2.625 / 2.75)
     in
         if time < 1 / 2.75 then
             a * time * time
@@ -320,12 +323,15 @@ easeInOutBounce = inOut easeInBounce easeOutBounce
 {-|-}
 easeInElastic : Easing
 easeInElastic time =
-    let
-        s  = 0.075
-        p  = 0.3
-        t' = time - 1
-    in
-        -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p))
+    if time == 0.0 then
+        0.0
+    else
+        let
+            s  = 0.075
+            p  = 0.3
+            t' = time - 1
+        in
+            -((2 ^ (10 * t')) * sin ((t' - s) * (2 * pi) / p))
 
 {-|-}
 easeOutElastic : Easing
