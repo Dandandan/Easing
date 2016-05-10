@@ -1,4 +1,4 @@
-module Easing (ease,
+module Easing exposing (ease,
  Interpolation, Animation,
  float, point2d, point3d, color, pair,
  cycle, invert, retour, inOut, flip,
@@ -15,7 +15,7 @@ module Easing (ease,
  easeInBack, easeOutBack, easeInOutBack,
  easeInBounce, easeOutBounce, easeInOutBounce,
  easeInElastic, easeOutElastic, easeInOutElastic
- ) where
+ )
 
 {-| `Easing` is a library for working creating simple animations with easing functions. Easing functions interpolate a value over time. This can be a value of any type, including numbers, points and colors.
 
